@@ -1,0 +1,99 @@
+body {
+	background: rebeccapurple;
+  }
+  
+  h1,
+  p {
+	font-family: Lato;
+  }
+  
+  .grid {
+	display: grid;
+	width: auto;
+  
+	grid-template-columns: repeat(var(--grid-size), 1fr);
+	gap: 0;
+  }
+  
+  .box {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid rebeccapurple;
+	color: transparent;
+	background: white;
+	height: 0;
+	padding-bottom: 100%;
+  }
+  
+  .box-0 {
+	background: rebeccapurple;
+	border-top-color: transparent;
+	border-right-color: transparent;
+	border-bottom-color: transparent;
+	border-left-color: transparent;
+  }
+  .box-1 {
+	border-top-color: transparent;
+  }
+  .box-2 {
+	border-right-color: transparent;
+  }
+  .box-3 {
+	border-top-color: transparent;
+	border-right-color: transparent;
+  }
+  .box-4 {
+	border-bottom-color: transparent;
+  }
+  .box-5 {
+	border-top-color: transparent;
+	border-bottom-color: transparent;
+  }
+  .box-6 {
+	border-right-color: transparent;
+	border-bottom-color: transparent;
+  }
+  .box-7 {
+	border-top-color: transparent;
+	border-right-color: transparent;
+	border-bottom-color: transparent;
+  }
+  .box-8 {
+	border-left-color: transparent;
+  }
+  .box-9 {
+	border-top-color: transparent;
+	border-left-color: transparent;
+  }
+  .box-10 {
+	border-right-color: transparent;
+	border-left-color: transparent;
+  }
+  .box-11 {
+	border-top-color: transparent;
+	border-right-color: transparent;
+	border-left-color: transparent;
+  }
+  .box-12 {
+	border-bottom-color: transparent;
+	border-left-color: transparent;
+  }
+  .box-13 {
+	border-top-color: transparent;
+	border-bottom-color: transparent;
+	border-left-color: transparent;
+  }
+  .box-14 {
+	border-right-color: transparent;
+	border-bottom-color: transparent;
+	border-left-color: transparent;
+  }
+  .box-15 {
+	border-top-color: transparent;
+	border-right-color: transparent;
+	border-bottom-color: transparent;
+	border-left-color: transparent;
+	background: black;
+  }
+  

@@ -1,3 +1,0 @@
-[submodule "js/lib"]
-	path = js/lib
-	url = git@github.com:codebox/maze.js.git
