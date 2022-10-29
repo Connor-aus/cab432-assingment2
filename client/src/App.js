@@ -3,9 +3,11 @@ import './App.css';
 
 import { Home } from "./pages/Home";
 
+//comment test
+
 function App() {
   return (
-    <div className="App" style={{backgroundColor: "rgb(31, 34, 51)", minHeight: "100vh"}}>
+    <div className="App" style={{ backgroundColor: "rgb(31, 34, 51)", minHeight: "100vh" }}>
       <header className="App-header">
         <h3 className="headingText">MazeRacer</h3>
       </header>
