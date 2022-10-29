@@ -1,0 +1,12 @@
+// name = [x]x[y][pathSolvingAlg][seedValue]
+// e.g., 100x50Astar14
+
+{
+    "path": [
+        [0,0],
+        [0,1],
+        [1,1],
+        [1,2]
+    ],
+    "speed": 1500
+}
