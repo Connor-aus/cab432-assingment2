@@ -3,127 +3,93 @@ import { Container, Row, Col } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 
 import { SearchBar } from "../components/SearchBar";
-import { GameList } from "../components/GameList";
-import { GameInfo } from "../components/GameInfo";
-import { Video } from "../components/Video";
 
-
-// import { Visualiser } from "../src/components/visualiser";
-// import { MazeG } from "../src/components/maze_generators";
-import './../css/style.css';
-
+import "./../css/style.css";
 
 export function Home() {
   const [search, setSearch] = useState("");
   const [games, setGames] = useState(null);
-  const [selectedGame, setSelectedGame] = useState(null);
-  const [videoTrailerId, setVideoTrailerId] = useState(null);
-  const [videoReviewId, setVideoReviewId] = useState(null);
-  const [videoStoryId, setVideoStoryId] = useState(null);
-  const [videoPlaythroughId, setVideoPlaythroughId] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [playerX, setPlayerX] = useState(0);
+  const [playerY, setPlayerY] = useState(0);
+  const [player, setPlayer] = useState(0);
+
+  // register key events
+  document.onkeydown = (e) => {
+    //console.log(grid);
+    //console.log(range);
+    e = e || window.event;
+    if (e.code === "KeyW") {
+      console.log("up arrow pressed");
+      setPlayer((p) => p - 50);
+    } else if (e.code === "KeyD") {
+      console.log("right arrow pressed");
+      setPlayer((p) => p + 1);
+    } else if (e.code === "KeyS") {
+      console.log("down arrow pressed");
+      setPlayer((p) => p + 50);
+    } else if (e.code === "KeyA") {
+      console.log("left arrow pressed");
+      setPlayer((p) => p - 1);
+    }
+  };
+
+  // // player moved
+  // useEffect(
+  //   () => {
+  //     (() => {})();
+  //   },
+  //   [playerY],
+  //   [playerX]
+  // );
+
+  useEffect(() => {console.log("player")}, [playerY], [playerX]);
 
   // callback functio for SearchBar
   const searchGame = (searchText) => {
     setSearch(searchText);
   };
 
-  // callback functio for GameList
-  const selectGame = (selection) => {
-    setSelectedGame(selection);
-  };
+  // // triggers API request for game data
+  // useEffect(() => {
+  //   (async () => {
+  //     if (search === "") return;
 
-  // triggers API request for game data
-  useEffect(() => {
-    (async () => {
-      if (search === "") return;
+  //     try {
+  //       let res = await fetch(`/search/${search}`);
+  //       let data = await res.json();
 
-      try {
-        let res = await fetch(`/search/${search}`);
-        let data = await res.json();
+  //       // display error if search returns no results
+  //       if (data === 0) {
+  //         setErrorMessage("game not found");
+  //         return;
+  //       }
 
-        // display error if search returns no results
-        if (data === 0) {
-          setErrorMessage("game not found");
-          return;
-        }
+  //       setErrorMessage("");
+  //       setSelectedGame(data[0]);
+  //       setGames(data);
 
-        setErrorMessage("");
-        setSelectedGame(data[0]);
-        setGames(data);
+  //       console.log("Successful request for game data : " + search);
+  //     } catch (err) {
+  //       setErrorMessage("error gathering game data");
+  //       console.log("Error fetching data : " + err);
+  //     }
+  //   })();
+  // }, [search]);
 
-        console.log("Successful request for game data : " + search);
-      } catch (err) {
-        setErrorMessage("error gathering game data");
-        console.log("Error fetching data : " + err);
-      }
-    })();
-  }, [search]);
-
-  // triggers API request for video ids
-  useEffect(() => {
-    (async () => {
-      if (selectedGame == null) return;
-
-      try {
-        let res = await fetch(`/video/${selectedGame.name} game trailer`);
-        let data = await res.json();
-        setVideoTrailerId(data);
-
-        console.log(
-          "Successful request for game trailer : " + selectedGame.name
-        );
-      } catch (err) {
-        console.log("Error fetching video trailer data : " + err);
-      }
-
-      try {
-        let res = await fetch(`/video/${selectedGame.name} game review`);
-        let data = await res.json();
-        setVideoReviewId(data);
-
-        console.log(
-          "Successful request for game review : " + selectedGame.name
-        );
-      } catch (err) {
-        console.log("Error fetching video review data : " + err);
-      }
-
-      try {
-        let res = await fetch(`/video/${selectedGame.name} game story`);
-        let data = await res.json();
-        setVideoStoryId(data);
-
-        console.log("Successful request for game story : " + selectedGame.name);
-      } catch (err) {
-        console.log("Error fetching video story data : " + err);
-      }
-
-      try {
-        let res = await fetch(`/video/${selectedGame.name} playthrough ep 1`);
-        let data = await res.json();
-        setVideoPlaythroughId(data);
-
-        console.log(
-          "Successful request for game playthrough : " + selectedGame.name
-        );
-      } catch (err) {
-        console.log("Error fetching video playthrough data : " + err);
-      }
-    })();
-  }, [selectedGame]);
-
-  // move up and remove React.
+  //move up and remove React.
   let [_count, setCount] = React.useState(0);
   const [mazeGenerator] = React.useState(() =>
     walk(grid, GRID_SIZE, GRID_SIZE)
   );
+  //walk(grid, GRID_SIZE, GRID_SIZE)
 
   useEffect(() => {
     let id = setInterval(() => {
       setCount((p) => p + 1);
       mazeGenerator.next();
-    }, 100);
+      console.log("generator");
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -140,16 +106,19 @@ export function Home() {
       {error(errorMessage)}
       <Row>
         <Col>
-        <div>
-      <div className="grid cf">
-        {grid.map((x, xIndex) => (
-          <div key={xIndex} className={`box box-${x}`}>
-            {' '}
-            {x}
+          <div>
+            <div className="grid cf">
+              {grid.map((x, xIndex) => {
+                //console.log(x, xIndex, yIndex);
+                //console.log(grid);
+                if (xIndex == player) {
+                  return <div key={xIndex} className={`player box-${x}`}></div>;
+                } else {
+                  return <div key={xIndex} className={`box box-${x}`}></div>;
+                }
+              })}
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
         </Col>
       </Row>
     </Container>
@@ -169,13 +138,8 @@ const error = (message) => {
   );
 };
 
-
-
-
-
-
-const GRID_SIZE = 100;
-document.documentElement.style.setProperty('--grid-size', `${GRID_SIZE}`);
+const GRID_SIZE = 50;
+document.documentElement.style.setProperty("--grid-size", `${GRID_SIZE}`);
 
 const l = console.log.bind(console);
 const t = console.table.bind(console);
@@ -195,7 +159,6 @@ const range = (min, max) =>
   Array.from({ length: max - min }).map((_, i) => i + min);
 
 var Direction = [1, 2, 4, 8];
-
 
 function getNeighbours(currentIndex, columns, rows) {
   const neighbour = [];
@@ -223,7 +186,6 @@ function getNeighbours(currentIndex, columns, rows) {
   }
   return neighbour;
 }
-
 
 function* walk(grid, width, height) {
   let index = getRandomInt(0, grid.length - 1);
@@ -269,7 +231,7 @@ function* walk(grid, width, height) {
         visited.add(nextIndex);
         i++;
         // grid[index] = i;
-        yield index;
+        // return index;
         continue;
       }
     }
@@ -280,13 +242,15 @@ function* walk(grid, width, height) {
 }
 
 const kiff = (size = GRID_SIZE) => {
-  console.time('walk');
+  console.time("walk");
   const grid = range(0, size * size).fill(0);
   Array.from(walk(grid, size, size));
-  console.timeEnd('walk');
+  console.timeEnd("walk");
   return grid;
 };
 
 window.kiff = kiff;
 
 const grid = range(0, GRID_SIZE * GRID_SIZE).fill(0);
+
+var example1 = async () => {};

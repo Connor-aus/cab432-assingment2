@@ -20,7 +20,7 @@ body {
 	justify-content: center;
 	align-items: center;
 	border: 1px solid rebeccapurple;
-	color: transparent;
+	/* color: transparent; */
 	background: white;
 	height: 0;
 	padding-bottom: 100%;
@@ -97,3 +97,13 @@ body {
 	background: black;
   }
   
+  .player {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid rebeccapurple;
+	/* color: transparent; */
+	background: red;
+	height: 0;
+	padding-bottom: 100%;
+  }
