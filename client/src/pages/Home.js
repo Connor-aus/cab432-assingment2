@@ -55,7 +55,19 @@ export function Home() {
 
   // callback function for seed value selection
   const searchSeed = (seedInput) => {
-    setSeed(seedInput);
+      var seedInt = parseInt(seedInput);
+      if (typeof(seedInt) != "number") {
+        setErrorMessage("seed must be a number");
+        return;
+      }
+
+      if (seedInt < 99999 && seedInt > 1) {
+        setSeed(seedInt);
+        setErrorMessage("");
+        return;
+      }
+      
+      setErrorMessage("seed must be between 0 - 100000");
   };
 
   // // triggers API request for game data
