@@ -5,7 +5,7 @@ const port = 3000;
 const cors = require('cors');
 require('dotenv').config();
 
-const gameSearchRouter = require('./routes/GameSearchAPI');
+const astarRouter = require('./routes/AstarAPI');
 const videoRouter = require('./routes/VideoAPI');
 const getCountRouter = require('./routes/GetCountAPI');
 const updateCountRouter = require('./routes/UpdateCountAPI');
@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.static("../client/build"));
 
 // search for a game
-app.use("/search", gameSearchRouter);
+app.use("/Astar", astarRouter);
 
 // get videos relating to game
 app.use("/video", videoRouter);

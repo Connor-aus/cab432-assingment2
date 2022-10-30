@@ -19,7 +19,7 @@ export function SearchBar(props) {
           value={searchText}
           onChange={(e) => setsearchText(e.target.value)}
           style={{
-            minWidth: "300px",
+            minWidth: "75px",
             borderRadius: "10px",
             paddingTop: "5px",
             paddingBottom: "5px",

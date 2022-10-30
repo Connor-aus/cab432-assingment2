@@ -13,6 +13,7 @@ export function Home() {
   const [playerY, setPlayerY] = useState(0);
   const [grid2, setGrid2] = useState([]);
   const [rendered, setRendered] = useState(false);
+  const [AstarPath, setAstarPath] = useState([]);
 
   var gridy = makeGrid();
 
@@ -70,32 +71,42 @@ export function Home() {
       setErrorMessage("seed must be between 0 - 100000");
   };
 
-  // // triggers API request for game data
-  // useEffect(() => {
-  //   (async () => {
-  //     if (search === "") return;
+  // triggers API request for game data
+  useEffect(() => {
+    (async () => {
+      if (seed === "") return;
 
-  //     try {
-  //       let res = await fetch(`/search/${search}`);
-  //       let data = await res.json();
+      try {
+        // construct key
+        var key = `${cols}x${rows}.Astar.${seed}`;
+        var exampleKey = "Astar.50x50.80";
+        
+        // check redis cache
 
-  //       // display error if search returns no results
-  //       if (data === 0) {
-  //         setErrorMessage("game not found");
-  //         return;
-  //       }
 
-  //       setErrorMessage("");
-  //       setSelectedGame(data[0]);
-  //       setGames(data);
+        // check server
+        let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
 
-  //       console.log("Successful request for game data : " + search);
-  //     } catch (err) {
-  //       setErrorMessage("error gathering game data");
-  //       console.log("Error fetching data : " + err);
-  //     }
-  //   })();
-  // }, [search]);
+        console.log(res);
+
+        let data = await res.json();
+
+        // display error if search returns no results
+        if (data === 0) {
+          setErrorMessage("path not found for Astar");
+          return;
+        }
+
+        setErrorMessage("");
+        setAstarPath(data);
+
+        console.log("Successful Astar path");
+      } catch (err) {
+        setErrorMessage("error gathering game data");
+        console.log("Error fetching data : " + err);
+      }
+    })();
+  }, [seed]);
 
   useEffect(() => {
     (async () => {
@@ -157,7 +168,7 @@ export function Home() {
   );
 }
 
-// error message if no game is found
+// error message
 const error = (message) => {
   if (message === "") return;
 
@@ -170,6 +181,9 @@ const error = (message) => {
   );
 };
 
+
+
+// TODO - move ALL this to a component
 const cols = 10; //columns in the grid
 const rows = 10; //rows in the grid
 
@@ -319,23 +333,3 @@ function walk(grid, width, height) {
   grid[cols / 2 - 1][rows / 2 - 1].walls = 15;
   return grid;
 }
-
-// TODO maybe not needed (everything below)
-
-// const range = (min, max) =>
-//   Array.from({ length: max - min }).map((_, i) => i + min);
-
-// const GRID_SIZE = 50;
-// document.documentElement.style.setProperty("--grid-size", `${GRID_SIZE}`);
-
-// const grid = range(0, GRID_SIZE * GRID_SIZE).fill(0);
-
-// const kiff = (size = GRID_SIZE) => {
-//   console.time("walk");
-//   const grid = range(0, size * size).fill(0);
-//   Array.from(walk(grid, size, size));
-//   console.timeEnd("walk");
-//   return grid;
-// };
-
-// window.kiff = kiff;
