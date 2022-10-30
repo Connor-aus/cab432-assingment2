@@ -19,26 +19,34 @@ export function Home() {
   // register key events
   document.onkeydown = (e) => {
     e = e || window.event;
-    if (e.code === "KeyW") {
-      console.log("up arrow pressed");
-      setPlayerY((y) => {
-        return y - 1;
-      });
-    } else if (e.code === "KeyD") {
-      console.log("right arrow pressed");
-      setPlayerX((x) => {
-        return x + 1;
-      });
-    } else if (e.code === "KeyS") {
-      console.log("down arrow pressed");
-      setPlayerY((y) => {
-        return y + 1;
-      });
-    } else if (e.code === "KeyA") {
-      console.log("left arrow pressed");
-      setPlayerX((x) => {
-        return x - 1;
-      });
+    if (e.code === "KeyW" && playerY > 0) {
+      if (grid2[playerX][playerY].walls > 8) {
+        console.log("up arrow pressed");
+        setPlayerY((y) => {
+          return y - 1;
+        });
+      }
+    } else if (e.code === "KeyD" && playerX < cols - 1) {
+      if (grid2[playerX][playerY].walls % 2 == 1) {
+        console.log("right arrow pressed");
+        setPlayerX((x) => {
+          return x + 1;
+        });
+      }
+    } else if (e.code === "KeyS" && playerY < rows - 1) {
+      if (grid2[playerX][playerY + 1].walls > 8) {
+        console.log("down arrow pressed");
+        setPlayerY((y) => {
+          return y + 1;
+        });
+      }
+    } else if (e.code === "KeyA" && playerX > 0) {
+      if (grid2[playerX - 1][playerY].walls % 2 == 1) {
+        console.log("left arrow pressed");
+        setPlayerX((x) => {
+          return x - 1;
+        });
+      }
     }
   };
 
