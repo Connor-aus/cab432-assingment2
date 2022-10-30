@@ -14,6 +14,9 @@ export function Home() {
   const [playerY, setPlayerY] = useState(0);
   const [player, setPlayer] = useState(0);
 
+
+  var gridy = makeGrid();
+
   // register key events
   document.onkeydown = (e) => {
     //console.log(grid);
@@ -43,7 +46,13 @@ export function Home() {
   //   [playerX]
   // );
 
-  useEffect(() => {console.log("player")}, [playerY], [playerX]);
+  useEffect(
+    () => {
+      console.log("player");
+    },
+    [playerY],
+    [playerX]
+  );
 
   // callback functio for SearchBar
   const searchGame = (searchText) => {
@@ -138,11 +147,40 @@ const error = (message) => {
   );
 };
 
+// going to have to use classes
+class Cell {
+  constructor(x, y, walls) {
+    this.x = x;
+    this.y = y;
+    this.walls = walls;
+    this.visited = false;
+  }
+}
+
+const cols = 50; //columns in the grid
+const rows = 50; //rows in the grid
+
+// grid2[0][0] = 8;
+
+function makeGrid() {
+  var grid2 = new Array(cols);
+
+  for (let i = 0; i < cols; i++) {
+    grid2[i] = new Array(rows);
+    
+    for (let j = 0; j < rows; j++) {
+      grid2[i][j] = new Cell(i,j,1);
+      console.log(grid2[i][j]);
+    }
+  }
+  return grid2;
+}
+
 const GRID_SIZE = 50;
 document.documentElement.style.setProperty("--grid-size", `${GRID_SIZE}`);
 
-const l = console.log.bind(console);
-const t = console.table.bind(console);
+// const l = console.log.bind(console);
+// const t = console.table.bind(console);
 
 const getRandomInt = (min, max) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
@@ -196,7 +234,7 @@ function* walk(grid, width, height) {
   let i = 0;
   grid[index] = i;
 
-  yield index;
+  //yield index;
   while (visited.size < grid.length) {
     const neighbours = getNeighbours(index, width, height).filter(
       (x) => !visited.has(x[1])
@@ -252,5 +290,3 @@ const kiff = (size = GRID_SIZE) => {
 window.kiff = kiff;
 
 const grid = range(0, GRID_SIZE * GRID_SIZE).fill(0);
-
-var example1 = async () => {};
