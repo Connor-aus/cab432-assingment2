@@ -7,11 +7,10 @@ import { SearchBar } from "../components/SearchBar";
 import "./../css/style.css";
 
 export function Home() {
-  const [search, setSearch] = useState("");
+  const [seed, setSeed] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [playerX, setPlayerX] = useState(0);
   const [playerY, setPlayerY] = useState(0);
-  //const [player, setPlayer] = useState(0);
   const [grid2, setGrid2] = useState([]);
   const [rendered, setRendered] = useState(false);
 
@@ -22,36 +21,33 @@ export function Home() {
     e = e || window.event;
     if (e.code === "KeyW") {
       console.log("up arrow pressed");
-      setPlayerY((y) => {return y-1;});
+      setPlayerY((y) => {
+        return y - 1;
+      });
     } else if (e.code === "KeyD") {
       console.log("right arrow pressed");
-      setPlayerX((x) => {return x+1;});
+      setPlayerX((x) => {
+        return x + 1;
+      });
     } else if (e.code === "KeyS") {
       console.log("down arrow pressed");
-      setPlayerY((y) => {return y+1;});
+      setPlayerY((y) => {
+        return y + 1;
+      });
     } else if (e.code === "KeyA") {
       console.log("left arrow pressed");
-      setPlayerX((x) => {return x-1;});
+      setPlayerX((x) => {
+        return x - 1;
+      });
     }
   };
 
   // player moved
-  useEffect(
-    () => {
-      (() => {
-        setRendered(false);
-        console.log(playerY);
-      })();
-    },
-    []
-  );
-
   useEffect(() => {}, [playerY], [playerX]);
-  useEffect(() => console.log('mounted'), [playerY]);
 
-  // callback functio for SearchBar
-  const searchGame = (searchText) => {
-    setSearch(searchText);
+  // callback function for seed value selection
+  const searchSeed = (seedInput) => {
+    setSeed(seedInput);
   };
 
   // // triggers API request for game data
@@ -81,19 +77,6 @@ export function Home() {
   //   })();
   // }, [search]);
 
-  //move up and remove React.
-  // let [_count, setCount] = React.useState(0);
-  // const [mazeGenerator] = React.useState(() => walk(gridy, cols, rows));
-
-  // useEffect(() => {
-  //   let id = setInterval(() => {
-  //     setCount((p) => p + 1);
-  //     mazeGenerator.next();
-  //     console.log("generator");
-  //   }, 1000);
-  //   return () => clearInterval(id);
-  // }, []);
-
   useEffect(() => {
     (async () => {
       if (!rendered) {
@@ -104,9 +87,9 @@ export function Home() {
     })();
   }, []);
 
-  console.log("rendered = " + rendered);
-  console.log(grid2);
-  console.log("player = " + playerX + playerY);
+  // console.log("rendered = " + rendered);
+  // console.log(grid2);
+  // console.log("player = " + playerX + playerY);
 
   return (
     <Container fluid className="bordercon">
@@ -115,57 +98,38 @@ export function Home() {
       </Row>
       <Row className="borderr">
         <Col className="bordercol">
-          <SearchBar onSubmit={searchGame} />
+          <SearchBar onSubmit={searchSeed} />
         </Col>
       </Row>
       {error(errorMessage)}
       <Row>
         <Col>
-          <div>
-            {/* {() => {
-              for (let i = 0; i < 50; i++) {
-                for (let j = 0; j < 50; j++) {
-                  console.log(i, j);
-                  console.log(grid2[i][j].walls);
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${cols}, 20px)`,
+              gridTemplateRows: `repeat(${rows}, 20px)`,
+            }}
+          >
+            {grid2.map((row, yIndex) =>
+              row.map((cell, xIndex) => {
+                if (xIndex == playerX && yIndex == playerY) {
                   return (
                     <div
-                      key={{ i, j }}
-                      className={`box box-${grid2[i][j].walls}`}
+                      key={[cell.y, cell.x]}
+                      className={`player box-${grid2[cell.y][cell.x].walls}`}
                     ></div>
-                  )();
+                  );
+                } else {
+                  return (
+                    <div
+                      key={[cell.y, cell.x]}
+                      className={`box box-${grid2[cell.y][cell.x].walls}`}
+                    ></div>
+                  );
                 }
-              }
-            }} */}
-            {/* <div className="grid cf"> */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${cols}, 20px)`,
-                gridTemplateRows: `repeat(${rows}, 20px)`,
-              }}
-            >
-              {grid2.map((row, yIndex) =>
-                row.map((cell, xIndex) => {
-                  //console.log(cell);
-                  //console.log(grid2[col][row]);
-                  if (xIndex == playerX && yIndex == playerY) {
-                    return (
-                      <div
-                        key={[cell.x, cell.y]}
-                        className={`player box-${cell.walls}`}
-                      ></div>
-                    );
-                  } else {
-                    return (
-                      <div
-                        key={[cell.x, cell.y]}
-                        className={`box box-${cell.walls}`}
-                      ></div>
-                    );
-                  }
-                })
-              )}
-            </div>
+              })
+            )}
           </div>
         </Col>
       </Row>
@@ -186,6 +150,9 @@ const error = (message) => {
   );
 };
 
+const cols = 10; //columns in the grid
+const rows = 10; //rows in the grid
+
 // represents a gridpoint
 class Cell {
   constructor(x, y) {
@@ -195,9 +162,6 @@ class Cell {
     this.visited = false;
   }
 }
-
-const cols = 50; //columns in the grid
-const rows = 50; //rows in the grid
 
 function makeGrid() {
   var grid2 = [cols];
@@ -209,14 +173,19 @@ function makeGrid() {
       grid2[i][j] = new Cell(i, j);
     }
   }
+
   return grid2;
 }
 
-const GRID_SIZE = 50;
-document.documentElement.style.setProperty("--grid-size", `${GRID_SIZE}`);
-
-const getRandomInt = (min, max) =>
-  Math.floor(Math.random() * (max - min + 1)) + min;
+//used to get random number
+function mulberry32(a) {
+  return function () {
+    var t = (a += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 function chooseDirection(grid, neighbours, x, y) {
   if (neighbours % 2 == 1) {
@@ -238,9 +207,6 @@ function chooseDirection(grid, neighbours, x, y) {
 
   return 0; // no options
 }
-
-const range = (min, max) =>
-  Array.from({ length: max - min }).map((_, i) => i + min);
 
 function getNeighbours(x, y, columns, rows) {
   var neighbour = 0;
@@ -265,8 +231,8 @@ function getNeighbours(x, y, columns, rows) {
 }
 
 function walk(grid, width, height) {
-  var x = 24;
-  var y = 24;
+  var x = 0;
+  var y = 0;
   grid[x][y].visited = true;
   var stack = [];
   stack.push([x, y]);
@@ -278,15 +244,15 @@ function walk(grid, width, height) {
   var direction;
 
   while (visited < size) {
-    console.log(x + " x of new");
-    console.log(y + " y of new");
+    //console.log(x + " x of new");
+    //console.log(y + " y of new");
     var neighbours = getNeighbours(x, y, width, height);
 
-    console.log(neighbours + " = neighbours");
+    //console.log(neighbours + " = neighbours");
     options = true;
 
     direction = chooseDirection(grid, neighbours, x, y);
-    console.log(direction + " = direction");
+    //console.log(direction + " = direction");
     switch (direction) {
       case 1:
         grid[x][y].walls += 1;
@@ -313,38 +279,43 @@ function walk(grid, width, height) {
         break;
     }
 
-    console.log(grid[x][y].walls);
-
     if (options) {
       stack.push([x, y]);
       grid[x][y].visited = true;
       visited++;
-      console.log("next " + x + "," + y);
+      //console.log("next " + x + "," + y);
 
       continue;
     }
 
-    //console.log('stepping back')
-
     index = stack.pop();
-    console.log("to " + index);
+    //console.log("to " + index);
     x = index[0];
     y = index[1];
   }
 
-  console.log("visited = " + visited);
-  console.log(grid);
+  //console.log("visited = " + visited);
+  //console.log(grid);
+  grid[cols / 2 - 1][rows / 2 - 1].walls = 15;
   return grid;
 }
 
-const kiff = (size = GRID_SIZE) => {
-  console.time("walk");
-  const grid = range(0, size * size).fill(0);
-  Array.from(walk(grid, size, size));
-  console.timeEnd("walk");
-  return grid;
-};
+// TODO maybe not needed (everything below)
 
-window.kiff = kiff;
+// const range = (min, max) =>
+//   Array.from({ length: max - min }).map((_, i) => i + min);
 
-const grid = range(0, GRID_SIZE * GRID_SIZE).fill(0);
+// const GRID_SIZE = 50;
+// document.documentElement.style.setProperty("--grid-size", `${GRID_SIZE}`);
+
+// const grid = range(0, GRID_SIZE * GRID_SIZE).fill(0);
+
+// const kiff = (size = GRID_SIZE) => {
+//   console.time("walk");
+//   const grid = range(0, size * size).fill(0);
+//   Array.from(walk(grid, size, size));
+//   console.timeEnd("walk");
+//   return grid;
+// };
+
+// window.kiff = kiff;
