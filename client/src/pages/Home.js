@@ -8,51 +8,46 @@ import "./../css/style.css";
 
 export function Home() {
   const [search, setSearch] = useState("");
-  const [games, setGames] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [playerX, setPlayerX] = useState(0);
   const [playerY, setPlayerY] = useState(0);
-  const [player, setPlayer] = useState(0);
-
+  //const [player, setPlayer] = useState(0);
+  const [grid2, setGrid2] = useState([]);
+  const [rendered, setRendered] = useState(false);
 
   var gridy = makeGrid();
 
   // register key events
   document.onkeydown = (e) => {
-    //console.log(grid);
-    //console.log(range);
     e = e || window.event;
     if (e.code === "KeyW") {
       console.log("up arrow pressed");
-      setPlayer((p) => p - 50);
+      setPlayerY((y) => {return y-1;});
     } else if (e.code === "KeyD") {
       console.log("right arrow pressed");
-      setPlayer((p) => p + 1);
+      setPlayerX((x) => {return x+1;});
     } else if (e.code === "KeyS") {
       console.log("down arrow pressed");
-      setPlayer((p) => p + 50);
+      setPlayerY((y) => {return y+1;});
     } else if (e.code === "KeyA") {
       console.log("left arrow pressed");
-      setPlayer((p) => p - 1);
+      setPlayerX((x) => {return x-1;});
     }
   };
 
-  // // player moved
-  // useEffect(
-  //   () => {
-  //     (() => {})();
-  //   },
-  //   [playerY],
-  //   [playerX]
-  // );
-
+  // player moved
   useEffect(
     () => {
-      console.log("player");
+      (() => {
+        setRendered(false);
+        console.log(playerY);
+      })();
     },
-    [playerY],
-    [playerX]
+    []
   );
+
+  useEffect(() => {}, [playerY], [playerX]);
+  useEffect(() => console.log('mounted'), [playerY]);
 
   // callback functio for SearchBar
   const searchGame = (searchText) => {
@@ -87,20 +82,31 @@ export function Home() {
   // }, [search]);
 
   //move up and remove React.
-  let [_count, setCount] = React.useState(0);
-  const [mazeGenerator] = React.useState(() =>
-    walk(grid, GRID_SIZE, GRID_SIZE)
-  );
-  //walk(grid, GRID_SIZE, GRID_SIZE)
+  // let [_count, setCount] = React.useState(0);
+  // const [mazeGenerator] = React.useState(() => walk(gridy, cols, rows));
+
+  // useEffect(() => {
+  //   let id = setInterval(() => {
+  //     setCount((p) => p + 1);
+  //     mazeGenerator.next();
+  //     console.log("generator");
+  //   }, 1000);
+  //   return () => clearInterval(id);
+  // }, []);
 
   useEffect(() => {
-    let id = setInterval(() => {
-      setCount((p) => p + 1);
-      mazeGenerator.next();
-      console.log("generator");
-    }, 1000);
-    return () => clearInterval(id);
+    (async () => {
+      if (!rendered) {
+        var result = walk(gridy, cols, rows);
+        setGrid2(result);
+        setRendered(true);
+      }
+    })();
   }, []);
+
+  console.log("rendered = " + rendered);
+  console.log(grid2);
+  console.log("player = " + playerX + playerY);
 
   return (
     <Container fluid className="bordercon">
@@ -116,16 +122,49 @@ export function Home() {
       <Row>
         <Col>
           <div>
-            <div className="grid cf">
-              {grid.map((x, xIndex) => {
-                //console.log(x, xIndex, yIndex);
-                //console.log(grid);
-                if (xIndex == player) {
-                  return <div key={xIndex} className={`player box-${x}`}></div>;
-                } else {
-                  return <div key={xIndex} className={`box box-${x}`}></div>;
+            {/* {() => {
+              for (let i = 0; i < 50; i++) {
+                for (let j = 0; j < 50; j++) {
+                  console.log(i, j);
+                  console.log(grid2[i][j].walls);
+                  return (
+                    <div
+                      key={{ i, j }}
+                      className={`box box-${grid2[i][j].walls}`}
+                    ></div>
+                  )();
                 }
-              })}
+              }
+            }} */}
+            {/* <div className="grid cf"> */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${cols}, 20px)`,
+                gridTemplateRows: `repeat(${rows}, 20px)`,
+              }}
+            >
+              {grid2.map((row, yIndex) =>
+                row.map((cell, xIndex) => {
+                  //console.log(cell);
+                  //console.log(grid2[col][row]);
+                  if (xIndex == playerX && yIndex == playerY) {
+                    return (
+                      <div
+                        key={[cell.x, cell.y]}
+                        className={`player box-${cell.walls}`}
+                      ></div>
+                    );
+                  } else {
+                    return (
+                      <div
+                        key={[cell.x, cell.y]}
+                        className={`box box-${cell.walls}`}
+                      ></div>
+                    );
+                  }
+                })
+              )}
             </div>
           </div>
         </Col>
@@ -147,12 +186,12 @@ const error = (message) => {
   );
 };
 
-// going to have to use classes
+// represents a gridpoint
 class Cell {
-  constructor(x, y, walls) {
+  constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.walls = walls;
+    this.walls = 0;
     this.visited = false;
   }
 }
@@ -160,17 +199,14 @@ class Cell {
 const cols = 50; //columns in the grid
 const rows = 50; //rows in the grid
 
-// grid2[0][0] = 8;
-
 function makeGrid() {
-  var grid2 = new Array(cols);
+  var grid2 = [cols];
 
   for (let i = 0; i < cols; i++) {
-    grid2[i] = new Array(rows);
-    
+    grid2[i] = [rows];
+
     for (let j = 0; j < rows; j++) {
-      grid2[i][j] = new Cell(i,j,1);
-      console.log(grid2[i][j]);
+      grid2[i][j] = new Cell(i, j);
     }
   }
   return grid2;
@@ -179,104 +215,126 @@ function makeGrid() {
 const GRID_SIZE = 50;
 document.documentElement.style.setProperty("--grid-size", `${GRID_SIZE}`);
 
-// const l = console.log.bind(console);
-// const t = console.table.bind(console);
-
 const getRandomInt = (min, max) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
 
-function getRandomItem(array) {
-  return array[getRandomInt(0, array.length - 1)];
+function chooseDirection(grid, neighbours, x, y) {
+  if (neighbours % 2 == 1) {
+    neighbours -= 1;
+    if (!grid[x + 1][y].visited) return 1; // right
+  }
+
+  if (neighbours >= 8) {
+    neighbours -= 8;
+    if (!grid[x][y - 1].visited) return 8; // up
+  }
+
+  if (neighbours >= 4) {
+    neighbours -= 4;
+    if (!grid[x - 1][y].visited) return 4; // left
+  }
+
+  if (neighbours == 2) if (!grid[x][y + 1].visited) return 2; // down
+
+  return 0; // no options
 }
 
-/**
- * - `min` included
- * - `max` excluded
- */
 const range = (min, max) =>
   Array.from({ length: max - min }).map((_, i) => i + min);
 
-var Direction = [1, 2, 4, 8];
+function getNeighbours(x, y, columns, rows) {
+  var neighbour = 0;
 
-function getNeighbours(currentIndex, columns, rows) {
-  const neighbour = [];
-
-  if (currentIndex < 0 || currentIndex >= columns * rows) {
+  if (x < 0 || x >= columns || y < 0 || y >= rows) {
     return neighbour;
   }
-  // l(index);
 
-  if (currentIndex >= columns) {
-    neighbour.push([1, currentIndex - columns]);
-    // l(`${index} can go up`);
+  if (y > 0) {
+    neighbour += 8;
   }
-  if (currentIndex % columns !== columns - 1) {
-    neighbour.push([2, currentIndex + 1]);
-    // l(`${index} can go right`);
+  if (x < cols - 1) {
+    neighbour += 1;
   }
-  if (currentIndex >= 0 && currentIndex < columns * rows - columns) {
-    neighbour.push([4, currentIndex + columns]);
-    // l(`${index} can go down`);
+  if (y < rows - 1) {
+    neighbour += 2;
   }
-  if (currentIndex % columns > 0) {
-    neighbour.push([8, currentIndex - 1]);
-    // l(`${index} can go left`);
+  if (x > 0) {
+    neighbour += 4;
   }
   return neighbour;
 }
 
-function* walk(grid, width, height) {
-  let index = getRandomInt(0, grid.length - 1);
-  const stack = [index];
-  const visited = new Set([index]);
-  // l('starting at', index);
+function walk(grid, width, height) {
+  var x = 24;
+  var y = 24;
+  grid[x][y].visited = true;
+  var stack = [];
+  stack.push([x, y]);
 
-  let i = 0;
-  grid[index] = i;
+  let visited = 1;
+  const size = width * height;
+  var options = true;
+  var index = [];
+  var direction;
 
-  //yield index;
-  while (visited.size < grid.length) {
-    const neighbours = getNeighbours(index, width, height).filter(
-      (x) => !visited.has(x[1])
-    );
+  while (visited < size) {
+    console.log(x + " x of new");
+    console.log(y + " y of new");
+    var neighbours = getNeighbours(x, y, width, height);
 
-    if (neighbours.length) {
-      // getRandomItem
-      const [direction, nextIndex] = getRandomItem(neighbours);
-      if (direction) {
-        switch (direction) {
-          case 1:
-            grid[index] ^= 1;
-            grid[nextIndex] ^= 4;
-            break;
-          case 2:
-            grid[index] ^= 2;
-            grid[nextIndex] ^= 8;
-            break;
-          case 4:
-            grid[index] ^= 4;
-            grid[nextIndex] ^= 1;
-            break;
-          case 8:
-            grid[index] ^= 8;
-            grid[nextIndex] ^= 2;
-            break;
-        }
+    console.log(neighbours + " = neighbours");
+    options = true;
 
-        index = nextIndex;
-        // l('moving to', index);
-        stack.push(nextIndex);
-        visited.add(nextIndex);
-        i++;
-        // grid[index] = i;
-        // return index;
-        continue;
-      }
+    direction = chooseDirection(grid, neighbours, x, y);
+    console.log(direction + " = direction");
+    switch (direction) {
+      case 1:
+        grid[x][y].walls += 1;
+        grid[x + 1][y].walls += 4;
+        x++;
+        break;
+      case 2:
+        grid[x][y].walls += 2;
+        grid[x][y + 1].walls += 8;
+        y++;
+        break;
+      case 4:
+        grid[x][y].walls += 4;
+        grid[x - 1][y].walls += 1;
+        x--;
+        break;
+      case 8:
+        grid[x][y].walls += 8;
+        grid[x][y - 1].walls += 2;
+        y--;
+        break;
+      case 0:
+        options = false;
+        break;
     }
 
+    console.log(grid[x][y].walls);
+
+    if (options) {
+      stack.push([x, y]);
+      grid[x][y].visited = true;
+      visited++;
+      console.log("next " + x + "," + y);
+
+      continue;
+    }
+
+    //console.log('stepping back')
+
     index = stack.pop();
-    // l('steping back to', index);
+    console.log("to " + index);
+    x = index[0];
+    y = index[1];
   }
+
+  console.log("visited = " + visited);
+  console.log(grid);
+  return grid;
 }
 
 const kiff = (size = GRID_SIZE) => {
