@@ -107,3 +107,131 @@ body {
 	height: 0;
 	padding-bottom: 100%;
   }
+
+
+/*/====retro style maze
+  body {
+	background: rebeccapurple;
+  }
+  
+  h1,
+  p {
+	font-family: Lato;
+  }
+  
+  .grid {
+	display: grid;
+	width: auto;
+  
+	grid-template-columns: repeat(var(--grid-size), 1fr);
+	gap: 0;
+  }
+  
+  .box {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 10px solid #999;
+	background: white;
+	border-image: url("/wall.jpg") 55/2 1 1 1/0;
+	height: 0;
+	padding-bottom: 100%;
+  }
+  
+  .box-0 {
+	background: rebeccapurple;
+	border-top: transparent;
+	border-right: transparent;
+	border-bottom: transparent;
+	border-left: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-1 {
+	border-right: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-2 {
+	border-bottom: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-3 {
+	border-right: transparent;
+	border-bottom: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-4 {
+	border-left: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-5 {
+	border-right: transparent;
+	border-left: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-6 {
+	border-bottom: transparent;
+	border-left: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-7 {
+	border-right: transparent;
+	border-bottom: transparent;
+	border-left: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-8 {
+	border-top: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-9 {
+	border-right: transparent;
+	border-top: transparent;
+	
+  }
+  .box-10 {
+	border-bottom: transparent;
+	border-top: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-11 {
+	border-right: transparent;
+	border-bottom: transparent;
+	border-top: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-12 {
+	border-left: transparent;
+	border-top: transparent;
+	padding-bottom:60px;
+	
+  }
+  .box-13 {
+	border-right: transparent;
+	border-left: transparent;
+	border-top: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-14 {
+	border-bottom: transparent;
+	border-left: transparent;
+	border-top: transparent;
+	box-shadow: inset 0 15px #ccc;
+  }
+  .box-15 {
+	border-top: transparent;
+	border-right: transparent;
+	border-bottom: transparent;
+	border-left: transparent;
+	background: black;
+  }
+  
+  .player {
+	display: block;
+	justify-content: center;
+	align-items: center;
+	border: 2px solid rebeccapurple;
+	color: transparent; 
+	box-shadow: none;
+	background: red;
+	height:100%;
+  } */
