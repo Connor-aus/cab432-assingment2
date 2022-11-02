@@ -8,44 +8,45 @@ import RandomNumGen from "../components/RandomNumGen";
 import "./../css/style.css";
 
 export function Home() {
-  const [seed, setSeed] = useState("");
+  const [seed, setSeed] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [playerX, setPlayerX] = useState(0);
   const [playerY, setPlayerY] = useState(0);
-  const [grid2, setGrid2] = useState([]);
-  const [rendered, setRendered] = useState(false);
+  const [maze, setMaze] = useState([]);
   const [AstarPath, setAstarPath] = useState([]);
+  // const [rendered, setRendered] = useState(false);
 
-  var gridy = makeGrid();
-
-
+  var blankGrid = makeGrid();
 
   // register key events
   document.onkeydown = (e) => {
     e = e || window.event;
+
+    if (maze.length < 1) return;
+
     if (e.code === "KeyW" && playerY > 0) {
-      if (grid2[playerX][playerY].walls > 8) {
+      if (maze[playerX][playerY].up) {
         console.log("up arrow pressed");
         setPlayerY((y) => {
           return y - 1;
         });
       }
     } else if (e.code === "KeyD" && playerX < cols - 1) {
-      if (grid2[playerX][playerY].walls % 2 == 1) {
+      if (maze[playerX][playerY].right) {
         console.log("right arrow pressed");
         setPlayerX((x) => {
           return x + 1;
         });
       }
     } else if (e.code === "KeyS" && playerY < rows - 1) {
-      if (grid2[playerX][playerY + 1].walls > 8) {
+      if (maze[playerX][playerY].down) {
         console.log("down arrow pressed");
         setPlayerY((y) => {
           return y + 1;
         });
       }
     } else if (e.code === "KeyA" && playerX > 0) {
-      if (grid2[playerX - 1][playerY].walls % 2 == 1) {
+      if (maze[playerX][playerY].left) {
         console.log("left arrow pressed");
         setPlayerX((x) => {
           return x - 1;
@@ -59,76 +60,76 @@ export function Home() {
 
   // callback function for seed value selection
   const searchSeed = (seedInput) => {
-      var seedInt = parseInt(seedInput);
-      if (typeof(seedInt) != "number") {
-        setErrorMessage("seed must be a number");
-        return;
-      }
+    var seedInt = parseInt(seedInput);
+    if (typeof seedInt != "number") {
+      setErrorMessage("seed must be a number");
+      return;
+    }
 
-      if (seedInt < 99999 && seedInt > 1) {
-        setSeed(seedInt);
-        setErrorMessage("");
-        return;
-      }
-      
-      setErrorMessage("seed must be between 0 - 100000");
+    if (seedInt < 99999 && seedInt > 0) {
+      setSeed(seedInt);
+      setErrorMessage("");
+      return;
+    }
+
+    setErrorMessage("seed must be between 0 - 100000");
   };
 
   // triggers API request for game data
+  // useEffect(() => {
+  //   (async () => {
+  //     if (seed === "") return;
+
+  //     try {
+  //       // construct key
+  //       var key = `${cols}x${rows}.Astar.${seed}`;
+  //       var exampleKey = "Astar.50x50.80";
+
+  //       // check redis cache
+
+  //       // check server
+  //       let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
+
+  //       console.log(res);
+
+  //       let data = await res.json();
+
+  //       // display error if search returns no results
+  //       if (data === 0) {
+  //         setErrorMessage("path not found for Astar");
+  //         return;
+  //       }
+
+  //       setErrorMessage("");
+  //       setAstarPath(data);
+
+  //       console.log("Successful Astar path");
+  //     } catch (err) {
+  //       setErrorMessage("error gathering game data");
+  //       console.log("Error fetching data : " + err);
+  //     }
+  //   })();
+  // }, [seed]);
+
   useEffect(() => {
     (async () => {
-      if (seed === "") return;
-
-      try {
-        // construct key
-        var key = `${cols}x${rows}.Astar.${seed}`;
-        var exampleKey = "Astar.50x50.80";
-        
-        // check redis cache
-
-
-        // check server
-        let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
-
-        console.log(res);
-
-        let data = await res.json();
-
-        // display error if search returns no results
-        if (data === 0) {
-          setErrorMessage("path not found for Astar");
-          return;
-        }
-
-        setErrorMessage("");
-        setAstarPath(data);
-
-        console.log("Successful Astar path");
-      } catch (err) {
-        setErrorMessage("error gathering game data");
-        console.log("Error fetching data : " + err);
+      if (seed != 0) {
+        console.log("rendering map");
+        var result = generate(blankGrid, seed);
+        setMaze(result);
+        // setRendered(true);
       }
     })();
   }, [seed]);
 
-  useEffect(() => {
-    (async () => {
-      if (!rendered) {
-        var result = walk(gridy, cols, rows);
-        setGrid2(result);
-        setRendered(true);
-      }
-    })();
-  }, []);
-
   // console.log("rendered = " + rendered);
-  // console.log(grid2);
+  // console.log(maze);
   // console.log("player = " + playerX + playerY);
 
   return (
     <Container fluid className="bordercon">
       <Row style={{ color: "rgb(255, 188, 62)", marginTop: "30px" }}>
-        <h1>Welcome to Maze Racer</h1>
+        <h1>Welcome to Maze Runner</h1>
       </Row>
       <Row className="borderr">
         <Col className="bordercol">
@@ -145,20 +146,24 @@ export function Home() {
               gridTemplateRows: `repeat(${rows}, 20px)`,
             }}
           >
-            {grid2.map((row, yIndex) =>
-              row.map((cell, xIndex) => {
+            {maze.map((col, yIndex) =>
+              col.map((cell, xIndex) => {
                 if (xIndex == playerX && yIndex == playerY) {
+                  calculateWalls(maze[cell.x][cell.y]);
+                  // console.log(maze[cell.x][cell.y]);
                   return (
                     <div
                       key={[cell.y, cell.x]}
-                      className={`player box-${grid2[cell.y][cell.x].walls}`}
+                      className={`player box-${maze[cell.y][cell.x].walls}`}
                     ></div>
                   );
                 } else {
+                  calculateWalls(maze[cell.x][cell.y]);
+                  // console.log(maze[cell.x][cell.y]);
                   return (
                     <div
                       key={[cell.y, cell.x]}
-                      className={`box box-${grid2[cell.y][cell.x].walls}`}
+                      className={`box box-${maze[cell.y][cell.x].walls}`}
                     ></div>
                   );
                 }
@@ -184,11 +189,15 @@ const error = (message) => {
   );
 };
 
-
-
 // TODO - move ALL this to a component
 const cols = 10; //columns in the grid
 const rows = 10; //rows in the grid
+
+// directions
+const right = 1;
+const down = 2;
+const left = 4;
+const up = 8;
 
 // represents a gridpoint
 class Cell {
@@ -196,78 +205,84 @@ class Cell {
     this.x = x;
     this.y = y;
     this.walls = 0;
+    this.up = false;
+    this.down = false;
+    this.right = false;
+    this.left = false;
     this.visited = false;
   }
 }
 
 function makeGrid() {
-  var grid2 = [cols];
+  var grid = [cols];
 
   for (let i = 0; i < cols; i++) {
-    grid2[i] = [rows];
+    grid[i] = [rows];
 
     for (let j = 0; j < rows; j++) {
-      grid2[i][j] = new Cell(i, j);
+      grid[i][j] = new Cell(i, j);
     }
   }
 
-  return grid2;
+  return grid;
 }
 
-//used to get random number
-function mulberry32(a) {
-  return function () {
-    var t = (a += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+function chooseDirection(grid, neighbours, x, y, seed) {
+  var validDirections = [];
 
-function chooseDirection(grid, neighbours, x, y) {
-  if (neighbours % 2 == 1) {
-    neighbours -= 1;
-    if (!grid[x + 1][y].visited) return 1; // right
+  if (neighbours.includes(right)) {
+    //neighbours -= 1;
+    if (!grid[x + 1][y].visited) validDirections.push(right); // right
   }
 
-  if (neighbours >= 8) {
-    neighbours -= 8;
-    if (!grid[x][y - 1].visited) return 8; // up
+  if (neighbours.includes(up)) {
+    //neighbours -= 8;
+    if (!grid[x][y - 1].visited) validDirections.push(up); // up
   }
 
-  if (neighbours >= 4) {
-    neighbours -= 4;
-    if (!grid[x - 1][y].visited) return 4; // left
+  if (neighbours.includes(left)) {
+    //neighbours -= 4;
+    if (!grid[x - 1][y].visited) validDirections.push(left); // left
   }
 
-  if (neighbours == 2) if (!grid[x][y + 1].visited) return 2; // down
+  if (neighbours.includes(down))
+    if (!grid[x][y + 1].visited)
+    validDirections.push(down); // down
 
-  return 0; // no options
+  var numberOfDirections = validDirections.length;
+
+  if (numberOfDirections < 1) return 0; // no options
+
+  // use modula result as the index for the selection
+  return validDirections[seed % numberOfDirections];
 }
 
 function getNeighbours(x, y, columns, rows) {
-  var neighbour = 0;
+  var neighbours = [];
 
   if (x < 0 || x >= columns || y < 0 || y >= rows) {
-    return neighbour;
+    return neighbours;
   }
-
-  if (y > 0) {
-    neighbour += 8;
-  }
+  
   if (x < cols - 1) {
-    neighbour += 1;
+    neighbours.push(right);
   }
   if (y < rows - 1) {
-    neighbour += 2;
+    neighbours.push(down);
   }
   if (x > 0) {
-    neighbour += 4;
+    neighbours.push(left);
   }
-  return neighbour;
+  if (y > 0) {
+    neighbours.push(up);
+  }
+  return neighbours;
 }
 
-function walk(grid, width, height) {
+function generate(grid, seed) {
+  var width = grid[0].length;
+  var height = grid.length;
+
   var x = 0;
   var y = 0;
   grid[x][y].visited = true;
@@ -286,32 +301,44 @@ function walk(grid, width, height) {
     var neighbours = getNeighbours(x, y, width, height);
 
     //console.log(neighbours + " = neighbours");
+    //console.log(neighbours);
     options = true;
 
-    direction = chooseDirection(grid, neighbours, x, y);
+    // generate new random number for each step
+    seed = RandomNumGen(seed)
+
+    direction = chooseDirection(grid, neighbours, x, y, seed);
     //console.log(direction + " = direction");
     switch (direction) {
-      case 1:
-        grid[x][y].walls += 1;
-        grid[x + 1][y].walls += 4;
+      case right:
+        // grid[x][y].walls += 1;
+        // grid[x + 1][y].walls += 4;
+        grid[x][y].right = true;
+        grid[x + 1][y].left = true;
         x++;
         break;
-      case 2:
-        grid[x][y].walls += 2;
-        grid[x][y + 1].walls += 8;
+      case down:
+        // grid[x][y].walls += 2;
+        // grid[x][y + 1].walls += 8;
+        grid[x][y].down = true;
+        grid[x][y + 1].up = true;
         y++;
         break;
-      case 4:
-        grid[x][y].walls += 4;
-        grid[x - 1][y].walls += 1;
+      case left:
+        // grid[x][y].walls += 4;
+        // grid[x - 1][y].walls += 1;
+        grid[x][y].left = true;
+        grid[x - 1][y].right = true;
         x--;
         break;
-      case 8:
-        grid[x][y].walls += 8;
-        grid[x][y - 1].walls += 2;
+      case up:
+        // grid[x][y].walls += 8;
+        // grid[x][y - 1].walls += 2;
+        grid[x][y].up = true;
+        grid[x][y - 1].down = true;
         y--;
         break;
-      case 0:
+      default:
         options = false;
         break;
     }
@@ -325,6 +352,8 @@ function walk(grid, width, height) {
       continue;
     }
 
+    //console.log(stack)
+
     index = stack.pop();
     //console.log("to " + index);
     x = index[0];
@@ -333,6 +362,37 @@ function walk(grid, width, height) {
 
   //console.log("visited = " + visited);
   //console.log(grid);
-  grid[cols / 2 - 1][rows / 2 - 1].walls = 15;
+
+  var centre = [cols / 2 - 1, rows / 2 - 1];
+  // grid[cols / 2 - 1][rows / 2 - 1].walls = 15;
+
+  grid[centre[0]][centre[1]].up = true;
+  grid[centre[0]][centre[1]].down = true;
+  grid[centre[0]][centre[1]].right = true;
+  grid[centre[0]][centre[1]].left = true;
+
+  grid[centre[0]][centre[1] + 1].up = true;
+  grid[centre[0]][centre[1] - 1].down = true;
+  grid[centre[0] + 1][centre[1]].left = true;
+  grid[centre[0] - 1][centre[1]].right = true;
+
+  // console.log(grid[0][0])
+  // console.log(grid[0][1])
+  // console.log(grid[9][9])
+  // console.log(grid[9][8])
+
   return grid;
+
+}
+
+function calculateWalls(cell) {
+  cell.walls = 0;
+
+  if (cell.right == true) cell.walls += right;
+
+  if (cell.down == true) cell.walls += down;
+
+  if (cell.left == true) cell.walls += left;
+
+  if (cell.up == true) cell.walls += up;
 }
