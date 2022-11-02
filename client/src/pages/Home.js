@@ -3,6 +3,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 
 import { SearchBar } from "../components/SearchBar";
+import RandomNumGen from "../components/RandomNumGen";
 
 import "./../css/style.css";
 
@@ -16,6 +17,8 @@ export function Home() {
   const [AstarPath, setAstarPath] = useState([]);
 
   var gridy = makeGrid();
+
+
 
   // register key events
   document.onkeydown = (e) => {
