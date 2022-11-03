@@ -6,7 +6,8 @@ const cors = require('cors');
 require('dotenv').config();
 
 const astarRouter = require('./routes/AstarAPI');
-const videoRouter = require('./routes/VideoAPI');
+const bfsRouter = require('./routes/BFSAPI');
+const dijkstrasRouter = require('./routes/DijkstrasAPI');
 const getCountRouter = require('./routes/GetCountAPI');
 const updateCountRouter = require('./routes/UpdateCountAPI');
 
@@ -15,11 +16,14 @@ app.use(cors());
 // Serve out any static assets correctly
 app.use(express.static("../client/build"));
 
-// search for a game
+// Astar pathfinder
 app.use("/Astar", astarRouter);
 
-// get videos relating to game
-app.use("/video", videoRouter);
+// Breadth-First-Search pathfinder
+app.use("/BFS", bfsRouter);
+
+// Dijkstra's pathfinder
+app.use("/Dijkstras", dijkstrasRouter);
 
 // get counter
 app.use("/count/get", getCountRouter, updateCountRouter);

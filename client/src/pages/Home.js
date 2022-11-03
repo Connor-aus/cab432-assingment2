@@ -13,13 +13,24 @@ export function Home() {
   const [playerX, setPlayerX] = useState(0);
   const [playerY, setPlayerY] = useState(0);
   const [maze, setMaze] = useState([]);
+
   const [AstarPath, setAstarPath] = useState([]);
   const [AstarSpeed, setAstarSpeed] = useState(0);
   const [AstarX, setAstarX] = useState(0);
   const [AstarY, setAstarY] = useState(0);
 
-  const cols = 50; //columns in the grid
-  const rows = 50; //rows in the grid
+  const [BFSPath, setBFSPath] = useState([]);
+  const [BFSSpeed, setBFSSpeed] = useState(0);
+  const [BFSX, setBFSX] = useState(0);
+  const [BFSY, setBFSY] = useState(0);
+
+  const [dijkstrasPath, setDijkstrasPath] = useState([]);
+  const [dijkstrasSpeed, setDijkstrasSpeed] = useState(0);
+  const [dijkstrasX, setDijkstrasX] = useState(0);
+  const [dijkstrasY, setDijkstrasY] = useState(0);
+
+  const cols = 100; //columns in the grid
+  const rows = 100; //rows in the grid
 
   // inititate the a blank grid
   var blankGrid = makeGrid(cols, rows);
@@ -48,8 +59,6 @@ export function Home() {
     if (maze.length < 1) return;
 
     if (e.code === "KeyW" && playerY > 0) {
-      // setAstarPath([[5,5],[6,6],[7,7],[8,8]]);
-      // setAstarSpeed(20);
       if (maze[playerX][playerY].up) {
         console.log("up arrow pressed");
         setPlayerY((y) => {
@@ -83,28 +92,41 @@ export function Home() {
   // player moved
   useEffect(() => {}, [playerY], [playerX]);
 
+  // useEffect(() => {
+  //   intervalStopFunction(myInterval)
+  // }, [seed]);
+
+  function intervalStopFunction(interval) {
+    clearInterval(interval);
+  }
+
   // game start
   useEffect(() => {
     if (AstarSpeed == 0) return;
 
-    console.log(AstarPath);
+    // console.log(AstarPath);
 
-    function printAstar(i) {
-      setAstarX(AstarPath[i][0]);
-      setAstarY(AstarPath[i][1]);
-      myStopFunction(i);
-      index++;
-      // console.log(index);
-    }
+    console.log("hit");
 
     var index = 0;
-    const myInterval = setInterval(() => printAstar(index), 500);
+    var currentSeed = seed;
 
-    function myStopFunction(index) {
-      // console.log(index)
-      // console.log(AstarPath.length)
-      if (index >= AstarPath.length - 1) clearInterval(myInterval);
+    function printAstar(i, currentSeed, seed) {
+      if (currentSeed != seed) intervalStopFunction(myInterval);
+
+      setAstarX(AstarPath[i][0]);
+      setAstarY(AstarPath[i][1]);
+
+      if (i >= AstarPath.length - 1) intervalStopFunction(myInterval);
+
+      index++;
+      console.log(i);
     }
+
+    const myInterval = setInterval(
+      () => printAstar(index, currentSeed, seed),
+      10
+    );
   }, [AstarSpeed]);
 
   // triggers API request for game data
@@ -119,34 +141,80 @@ export function Home() {
 
         // check redis cache
 
-        // check server
-        let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
+        // pass to server
+        let getAstarPath = async () => {
+          console.log("sending request for Astar path");
 
-        console.log(res);
+          let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
+          let data = await res.json();
 
-        let data = await res.json();
+          //console.log(data);
 
-        console.log(data);
+          // console.log("Astar path is long = " + data.path.length);
 
-        // no path found
-        if (data.length < 1) {
-          // print error
-          return;
-        }
+          if (data.length < 1) {
+            setErrorMessage("path not found for Astar");
+            return;
+          }
 
-        setAstarPath(data.path);
-        setAstarSpeed(data.speed);
+          setAstarPath(data.path);
+          setAstarSpeed(Math.random);
 
-        // display error if search returns no results
-        if (data === 0) {
-          setErrorMessage("path not found for Astar");
-          return;
-        }
+          setErrorMessage("");
 
-        setErrorMessage("");
-        setAstarPath(data);
+          console.log("Successful Astar path");
+        };
 
-        console.log("Successful Astar path");
+        let getBFSPath = async () => {
+          console.log("sending request for BFS path");
+
+          let res = await fetch(`/BFS/${cols}/${rows}/${seed}`);
+          let data = await res.json();
+
+          //console.log(data);
+
+          // console.log("BFS path is long = " + data.path.length);
+
+          if (data.length < 1) {
+            setErrorMessage("path not found for BFS");
+            return;
+          }
+
+          setBFSPath(data.path);
+          setBFSSpeed(Math.random);
+
+          setErrorMessage("");
+
+          console.log("Successful BFS path");
+        };
+
+        let getDijkstrasPath = async () => {
+          console.log("sending request for Dijkstras path");
+
+          let res = await fetch(`/Dijkstras/${cols}/${rows}/${seed}`);
+          let data = await res.json();
+
+          //console.log(data);
+
+          // console.log("Dijsktras path is long = " + data.path.length);
+
+          if (data.length < 1) {
+            setErrorMessage("path not found for Dijkstras");
+            return;
+          }
+
+          setDijkstrasPath(data.path);
+          setDijkstrasSpeed(Math.random);
+
+          setErrorMessage("");
+
+          console.log("Successful Dijkstras path");
+        };
+
+        // Promise.all([getAstarPath, getBFSPath, getDijkstrasPath]);
+        getAstarPath();
+        getBFSPath();
+        getDijkstrasPath();
       } catch (err) {
         setErrorMessage("error gathering game data");
         console.log("Error fetching data : " + err);
@@ -157,14 +225,14 @@ export function Home() {
   useEffect(() => {
     (async () => {
       if (seed == 0) return;
-      
-        console.log("rendering map");
 
-        var result = generateMaze(blankGrid, seed);
+      console.log("rendering map");
 
-        setMaze(result);
+      var result = generateMaze(blankGrid, seed);
 
-        setAstarX(blankGrid.length - 1);
+      setMaze(result);
+
+      setAstarX(blankGrid.length - 1);
     })();
   }, [seed]);
 

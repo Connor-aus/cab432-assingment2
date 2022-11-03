@@ -68,7 +68,7 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     res.json(response);
     
-    console.log("Astar response sent");
+    console.log("Dijkstras response sent");
   } catch (err) {
     console.log("Error calculating route Astar: ");
     console.log(err);

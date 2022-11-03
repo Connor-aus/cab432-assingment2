@@ -39,25 +39,30 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     var now = new Date().getTime();
 
-    var blankGrid = lib.makeGrid(req.params.cols, req.params.rows);
-
-    var maze = lib.generateMaze(blankGrid, req.params.seed);
-
-    var results = calculateRoute(maze);
-
-    // no route found
-    if (results.length < 1) {
-      res.json([]);
-      return;
+    const MAX = 1000000000;
+    for (let i = 0; i <= MAX; i++) {
+      let dummy = Math.log(i + 1);
     }
 
-    var routeCoords = getCoords(results[0]);
-    var cost = results[1];
+    // var blankGrid = lib.makeGrid(req.params.cols, req.params.rows);
 
-    // console.log(routeCoords);
+    // var maze = lib.generateMaze(blankGrid, req.params.seed);
 
-    var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
-    var response = generateResponse(responseId, routeCoords, cost);
+    // var results = calculateRoute(maze);
+
+    // // no route found
+    // if (results.length < 1) {
+    //   res.json([]);
+    //   return;
+    // }
+
+    // var routeCoords = getCoords(results[0]);
+    // var cost = results[1];
+
+    // // console.log(routeCoords);
+
+    // var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
+    // var response = generateResponse(responseId, routeCoords, cost);
 
     var later = new Date().getTime();
     console.log("total time = " + (later - now));
@@ -66,9 +71,10 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     // save path to cache
 
-    res.json(response);
+    // res.json(response);
+    res.json([]);
     
-    console.log("Astar response sent");
+    console.log("BFS response sent");
   } catch (err) {
     console.log("Error calculating route Astar: ");
     console.log(err);
