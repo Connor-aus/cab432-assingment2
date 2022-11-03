@@ -14,9 +14,32 @@ export function Home() {
   const [playerY, setPlayerY] = useState(0);
   const [maze, setMaze] = useState([]);
   const [AstarPath, setAstarPath] = useState([]);
-  // const [rendered, setRendered] = useState(false);
+  const [AstarSpeed, setAstarSpeed] = useState(0);
+  const [AstarX, setAstarX] = useState(0);
+  const [AstarY, setAstarY] = useState(0);
 
-  var blankGrid = makeGrid();
+  const cols = 50; //columns in the grid
+  const rows = 50; //rows in the grid
+
+  // inititate the a blank grid
+  var blankGrid = makeGrid(cols, rows);
+
+  // callback function for seed value selection
+  const searchSeed = (seedInput) => {
+    var seedInt = parseInt(seedInput);
+    if (typeof seedInt != "number") {
+      setErrorMessage("seed must be a number");
+      return;
+    }
+
+    if (seedInt < 99999 && seedInt > 0) {
+      setSeed(seedInt);
+      setErrorMessage("");
+      return;
+    }
+
+    setErrorMessage("seed must be between 0 - 100000");
+  };
 
   // register key events
   document.onkeydown = (e) => {
@@ -25,6 +48,8 @@ export function Home() {
     if (maze.length < 1) return;
 
     if (e.code === "KeyW" && playerY > 0) {
+      // setAstarPath([[5,5],[6,6],[7,7],[8,8]]);
+      // setAstarSpeed(20);
       if (maze[playerX][playerY].up) {
         console.log("up arrow pressed");
         setPlayerY((y) => {
@@ -58,67 +83,88 @@ export function Home() {
   // player moved
   useEffect(() => {}, [playerY], [playerX]);
 
-  // callback function for seed value selection
-  const searchSeed = (seedInput) => {
-    var seedInt = parseInt(seedInput);
-    if (typeof seedInt != "number") {
-      setErrorMessage("seed must be a number");
-      return;
+  // game start
+  useEffect(() => {
+    if (AstarSpeed == 0) return;
+
+    console.log(AstarPath);
+
+    function printAstar(i) {
+      setAstarX(AstarPath[i][0]);
+      setAstarY(AstarPath[i][1]);
+      myStopFunction(i);
+      index++;
+      // console.log(index);
     }
 
-    if (seedInt < 99999 && seedInt > 0) {
-      setSeed(seedInt);
-      setErrorMessage("");
-      return;
-    }
+    var index = 0;
+    const myInterval = setInterval(() => printAstar(index), 500);
 
-    setErrorMessage("seed must be between 0 - 100000");
-  };
+    function myStopFunction(index) {
+      // console.log(index)
+      // console.log(AstarPath.length)
+      if (index >= AstarPath.length - 1) clearInterval(myInterval);
+    }
+  }, [AstarSpeed]);
 
   // triggers API request for game data
-  // useEffect(() => {
-  //   (async () => {
-  //     if (seed === "") return;
+  useEffect(() => {
+    (async () => {
+      if (seed == 0) return;
 
-  //     try {
-  //       // construct key
-  //       var key = `${cols}x${rows}.Astar.${seed}`;
-  //       var exampleKey = "Astar.50x50.80";
+      try {
+        // construct key
+        var key = `${cols}x${rows}.${seed}.Astar`;
+        var exampleKey = "50x50.80.Astar";
 
-  //       // check redis cache
+        // check redis cache
 
-  //       // check server
-  //       let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
+        // check server
+        let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
 
-  //       console.log(res);
+        console.log(res);
 
-  //       let data = await res.json();
+        let data = await res.json();
 
-  //       // display error if search returns no results
-  //       if (data === 0) {
-  //         setErrorMessage("path not found for Astar");
-  //         return;
-  //       }
+        console.log(data);
 
-  //       setErrorMessage("");
-  //       setAstarPath(data);
+        // no path found
+        if (data.length < 1) {
+          // print error
+          return;
+        }
 
-  //       console.log("Successful Astar path");
-  //     } catch (err) {
-  //       setErrorMessage("error gathering game data");
-  //       console.log("Error fetching data : " + err);
-  //     }
-  //   })();
-  // }, [seed]);
+        setAstarPath(data.path);
+        setAstarSpeed(data.speed);
+
+        // display error if search returns no results
+        if (data === 0) {
+          setErrorMessage("path not found for Astar");
+          return;
+        }
+
+        setErrorMessage("");
+        setAstarPath(data);
+
+        console.log("Successful Astar path");
+      } catch (err) {
+        setErrorMessage("error gathering game data");
+        console.log("Error fetching data : " + err);
+      }
+    })();
+  }, [seed]);
 
   useEffect(() => {
     (async () => {
-      if (seed != 0) {
+      if (seed == 0) return;
+      
         console.log("rendering map");
-        var result = generate(blankGrid, seed);
+
+        var result = generateMaze(blankGrid, seed);
+
         setMaze(result);
-        // setRendered(true);
-      }
+
+        setAstarX(blankGrid.length - 1);
     })();
   }, [seed]);
 
@@ -142,8 +188,8 @@ export function Home() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${cols}, 20px)`,
-              gridTemplateRows: `repeat(${rows}, 20px)`,
+              gridTemplateColumns: `repeat(${cols}, 10px)`,
+              gridTemplateRows: `repeat(${rows}, 10px)`,
             }}
           >
             {maze.map((col, yIndex) =>
@@ -154,7 +200,16 @@ export function Home() {
                   return (
                     <div
                       key={[cell.y, cell.x]}
-                      className={`player box-${maze[cell.y][cell.x].walls}`}
+                      className={`player-1 box-${maze[cell.y][cell.x].walls}`}
+                    ></div>
+                  );
+                } else if (xIndex == AstarX && yIndex == AstarY) {
+                  calculateWalls(maze[cell.x][cell.y]);
+                  // console.log(maze[cell.x][cell.y]);
+                  return (
+                    <div
+                      key={[cell.y, cell.x]}
+                      className={`player-2 box-${maze[cell.y][cell.x].walls}`}
                     ></div>
                   );
                 } else {
@@ -163,7 +218,7 @@ export function Home() {
                   return (
                     <div
                       key={[cell.y, cell.x]}
-                      className={`box box-${maze[cell.y][cell.x].walls}`}
+                      className={`player-0 box-${maze[cell.y][cell.x].walls}`}
                     ></div>
                   );
                 }
@@ -190,8 +245,6 @@ const error = (message) => {
 };
 
 // TODO - move ALL this to a component
-const cols = 10; //columns in the grid
-const rows = 10; //rows in the grid
 
 // directions
 const right = 1;
@@ -213,13 +266,14 @@ class Cell {
   }
 }
 
-function makeGrid() {
-  var grid = [cols];
+// inititate the a blank grid
+function makeGrid(width, height) {
+  var grid = [width];
 
-  for (let i = 0; i < cols; i++) {
-    grid[i] = [rows];
+  for (let i = 0; i < width; i++) {
+    grid[i] = [height];
 
-    for (let j = 0; j < rows; j++) {
+    for (let j = 0; j < height; j++) {
       grid[i][j] = new Cell(i, j);
     }
   }
@@ -230,24 +284,17 @@ function makeGrid() {
 function chooseDirection(grid, neighbours, x, y, seed) {
   var validDirections = [];
 
-  if (neighbours.includes(right)) {
-    //neighbours -= 1;
+  if (neighbours.includes(right))
     if (!grid[x + 1][y].visited) validDirections.push(right); // right
-  }
 
-  if (neighbours.includes(up)) {
-    //neighbours -= 8;
+  if (neighbours.includes(up))
     if (!grid[x][y - 1].visited) validDirections.push(up); // up
-  }
 
-  if (neighbours.includes(left)) {
-    //neighbours -= 4;
+  if (neighbours.includes(left))
     if (!grid[x - 1][y].visited) validDirections.push(left); // left
-  }
 
   if (neighbours.includes(down))
-    if (!grid[x][y + 1].visited)
-    validDirections.push(down); // down
+    if (!grid[x][y + 1].visited) validDirections.push(down); // down
 
   var numberOfDirections = validDirections.length;
 
@@ -257,29 +304,23 @@ function chooseDirection(grid, neighbours, x, y, seed) {
   return validDirections[seed % numberOfDirections];
 }
 
-function getNeighbours(x, y, columns, rows) {
+function getNeighbours(x, y, cols, rows) {
   var neighbours = [];
 
-  if (x < 0 || x >= columns || y < 0 || y >= rows) {
-    return neighbours;
-  }
-  
-  if (x < cols - 1) {
-    neighbours.push(right);
-  }
-  if (y < rows - 1) {
-    neighbours.push(down);
-  }
-  if (x > 0) {
-    neighbours.push(left);
-  }
-  if (y > 0) {
-    neighbours.push(up);
-  }
+  if (x < 0 || x >= cols || y < 0 || y >= rows) return neighbours;
+
+  if (x < cols - 1) neighbours.push(right);
+
+  if (y < rows - 1) neighbours.push(down);
+
+  if (x > 0) neighbours.push(left);
+
+  if (y > 0) neighbours.push(up);
+
   return neighbours;
 }
 
-function generate(grid, seed) {
+function generateMaze(grid, seed) {
   var width = grid[0].length;
   var height = grid.length;
 
@@ -305,7 +346,7 @@ function generate(grid, seed) {
     options = true;
 
     // generate new random number for each step
-    seed = RandomNumGen(seed)
+    seed = RandomNumGen(seed);
 
     direction = chooseDirection(grid, neighbours, x, y, seed);
     //console.log(direction + " = direction");
@@ -363,7 +404,7 @@ function generate(grid, seed) {
   //console.log("visited = " + visited);
   //console.log(grid);
 
-  var centre = [cols / 2 - 1, rows / 2 - 1];
+  var centre = [width / 2 - 1, height / 2 - 1];
   // grid[cols / 2 - 1][rows / 2 - 1].walls = 15;
 
   grid[centre[0]][centre[1]].up = true;
@@ -382,7 +423,6 @@ function generate(grid, seed) {
   // console.log(grid[9][8])
 
   return grid;
-
 }
 
 function calculateWalls(cell) {
