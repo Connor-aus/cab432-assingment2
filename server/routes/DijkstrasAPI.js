@@ -24,88 +24,22 @@ const { ElastiCacheClient } = require("@aws-sdk/client-elasticache");
 const client = new ElastiCacheClient({ region: "ap-southeast-2" });
 
 const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
-var redisClient = redis.createClient({
-  url: `redis://${elasti}`,
-});
+var redisClient = redis.createClient(
+//   {
+//   url: `redis://${elasti}`,
+// }
+);
 
-// const bucketName = "mascon";
-//const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
+
 (async () => {
   try {
     await redisClient.connect();
-    // s3.createBucket({ Bucket: bucketName });
-    // console.log(`Created redis bucket: ${bucketName}`);
+    console.log(`connected to Redis`);
   } catch (err) {
-    // We will ignore 409 errors which indicate that the bucket already exists
-    if (err.statusCode !== 409) {
-      console.log(`Error creating redis bucket: ${err}`);
+      console.log(`Error connecting to Redis ${err}`);
     }
   }
-})();
-
-//const key = "testkey";
-//const s3key = `${key}`;
-// const objectParams = {
-//   Bucket: bucketName,
-// //  Key: s3key,
-// };
-
-// (async () => {
-//   try {
-//  //   await s3.putObject(objectParams).promise()
-//     console.log(`Successfully uploaded data to ${bucketName} / ${s3key}`);
-//   } catch (err) {
-//     console.log(err, err.stack);
-//   }
-// })();
-
-// app.get(async (req, res) => {
-//   //const key = req.query.key.trim();
-//   //const searchUrl =
-//   //  `https://en.wikipedia.org/w/api.php?action=parse&format=json&section=0&page=${key}`;
-//   //const s3key = `wikipedia-${key}`;
-//   const redisKey = `test`;
-//   // Check S3
-//   // const params = { Bucket: bucketName, Key: s3key };
-
-//   try {
-//     if (result) {
-//       // const resultJSON = JSON.parse(result);
-//       res.json(resultJSON);
-//     } else {
-//       const s3Result = await s3.getObject(params).promise();
-//       const s3JSON = JSON.parse(s3Result.Body);
-//       redisClient.setEx(
-//         redisKey,
-//         3600,
-//         //JSON.stringify({ source: "From Redis Cache", ...s3JSON })
-//         JSON.stringify({ ...s3JSON, source: "From Redis Cache" })
-//       );
-
-//       res.json(s3JSON);
-//     }
-
-//   } catch (err) {
-//     if (err.statusCode === 404) {
-//       response = await axios.get(searchUrl);
-//       const responseJSON = response.data;
-//       redisClient.setEx(
-//         redisKey,
-//         3600,
-//         JSON.stringify({ source: "From Redis Cache", ...responseJSON })
-//       );
-//       const body = JSON.stringify({ source: "S3 bucket", ...responseJSON });
-//       const objectParams = { Bucket: bucketName, Key: s3key, Body: body };
-//       await s3.putObject(objectParams).promise();
-//       console.log(`Successfully uploaded data to ${bucketName}/${s3key}`);
-//       res.json({ source: "From wikipedia API", ...responseJSON });
-//     } else {
-//       res.json(err);
-//     }
-//   }
-// });
-
-/////////////////////////////////////////////////////////////////////////////////////
+)();
 
 router.get("/:cols/:rows/:seed", async (req, res) => {
   try {
@@ -140,6 +74,8 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     console.log(response);
     console.log(typeof response);
 
+    const result = await redisClient.get("a");
+
     // save path to cache
     redisClient.setEx(
       responseId,
@@ -148,9 +84,9 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
       JSON.stringify({ response })
     );
 
-    const result = await redisClient.get(responseId);
     console.log("=====redistest========");
     console.log(result);
+    
     var later = new Date().getTime();
     var totalTime = later - now;
     console.log("total D time = " + totalTime);
