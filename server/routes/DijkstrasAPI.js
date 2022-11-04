@@ -5,6 +5,120 @@ const router = express.Router();
 
 const lib = require("../modules/lib");
 
+require('dotenv').config();
+const app = express();
+const AWS = require('aws-sdk');
+const redis = require('redis');
+
+
+// Set the region
+AWS.config.update({
+  region: "ap-southeast-2",
+  aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
+  aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
+  aws_session_token: process.env.AWS_SESSION_TOKEN,
+});
+
+
+////////////////////////////////////////////////////////////////////////////////////
+const {
+  ElastiCacheClient,
+} = require("@aws-sdk/client-elasticache");
+
+const client = new ElastiCacheClient({ region: "ap-southeast-2" });
+
+const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
+var redisClient = redis.createClient({
+  url: `redis://${elasti}`,
+});
+
+
+//const bucketName = "cab432n10838601-wikipedia-store2";
+//const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
+(async () => {
+  try {
+    await redisClient.connect();
+    // s3.createBucket({ Bucket: bucketName });
+    console.log(`Created redis bucket: ${bucketName}`);
+  } catch (err) {
+    // We will ignore 409 errors which indicate that the bucket already exists
+    if (err.statusCode !== 409) {
+      console.log(`Error creating redis bucket: ${err}`);
+    }
+  }
+})();
+//const key = "testkey";
+//const s3key = `${key}`;
+// const objectParams = {
+//   Bucket: bucketName,
+// //  Key: s3key,
+// };
+
+// (async () => {
+//   try {
+//  //   await s3.putObject(objectParams).promise()
+//     console.log(`Successfully uploaded data to ${bucketName} / ${s3key}`);
+//   } catch (err) {
+//     console.log(err, err.stack);
+//   }
+// })();
+
+app.get(async (req, res) => {
+  //const key = req.query.key.trim();
+  //const searchUrl =
+  //  `https://en.wikipedia.org/w/api.php?action=parse&format=json&section=0&page=${key}`;
+  const s3key = `wikipedia-${key}`;
+  const redisKey = `wikipedia:${key}`;
+  // Check S3
+  const params = { Bucket: bucketName, Key: s3key };
+
+
+  try {
+    if (result) {
+      const resultJSON = JSON.parse(result);
+      res.json(resultJSON);
+    } else {
+      const s3Result = await s3.getObject(params).promise();
+      const s3JSON = JSON.parse(s3Result.Body);
+      redisClient.setEx(
+        redisKey,
+        3600,
+        //JSON.stringify({ source: "From Redis Cache", ...s3JSON })
+        JSON.stringify({ ...s3JSON, source: "From Redis Cache" })
+      );
+
+      res.json(s3JSON);
+    }
+
+  } catch (err) {
+    if (err.statusCode === 404) {
+      response = await axios.get(searchUrl);
+      const responseJSON = response.data;
+      redisClient.setEx(
+        redisKey,
+        3600,
+        JSON.stringify({ source: "From Redis Cache", ...responseJSON })
+      );
+      const body = JSON.stringify({ source: "S3 bucket", ...responseJSON });
+      const objectParams = { Bucket: bucketName, Key: s3key, Body: body };
+      await s3.putObject(objectParams).promise();
+      console.log(`Successfully uploaded data to ${bucketName}/${s3key}`);
+      res.json({ source: "From wikipedia API", ...responseJSON });
+    } else {
+      res.json(err);
+    }
+  }
+});
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
 router.get("/:cols/:rows/:seed", async (req, res) => {
   try {
     // check database
@@ -33,11 +147,20 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Dijkstra`;
     var response = generateResponse(responseId, routeCoords, cost);
-
+    //const responseJSON = JSON.parse(response);
     // save path to database
 
     // save path to cache
+    redisClient.setEx(
+      responseId,
+      //3600,
+      //JSON.stringify({ source: "From Redis Cache", ...s3JSON })
+      JSON.stringify({ ...response })
+    );
 
+    const result = await redisClient.get(responseId);
+    console.log("=====redistest========");
+    console.log(result);
     var later = new Date().getTime();
     var totalTime = later - now;
     console.log("total D time = " + totalTime);
