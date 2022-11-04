@@ -5,6 +5,26 @@ const router = express.Router();
 
 const lib = require("../modules/lib");
 
+// Load the AWS SDK for Node.js
+var AWS = require("aws-sdk");
+
+// Set the region
+AWS.config.update({
+  region: "ap-southeast-2",
+  aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
+  aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
+  aws_session_token: process.env.AWS_SESSION_TOKEN,
+});
+
+console.log(AWS.config.aws_access_key_id);
+console.log(AWS.config.aws_secret_access_key);
+console.log(AWS.config.aws_session_token);
+
+var responseId = "test";
+
+// Create DynamoDB document client
+var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+
 router.get("/:cols/:rows/:seed", async (req, res) => {
   // let gameData;
   // let searchedGame;
@@ -57,10 +77,14 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     // console.log(routeCoords);
 
-    var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
+    responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
     var response = generateResponse(responseId, routeCoords, cost);
 
     // save path to database
+    // set new value in request params
+    updateParams.ExpressionAttributeValues[":n"] = routeCoords;
+    await updateRequest();
+    await getRequest();
 
     // save path to cache
 
@@ -78,6 +102,59 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
   }
 });
 
+//update request params
+var updateParams = {
+  TableName: "mascontest1",
+  ExpressionAttributeNames: {
+    "#c": "counter",
+  },
+  Key: {
+    "qut-username": "n8844488@qut.edu.au",
+    "my-basic-key": `${responseId}`,
+  },
+  UpdateExpression: "set #c = :n",
+  ExpressionAttributeValues: {
+    ":n": 0,
+  },
+};
+
+// update request
+var updateRequest = async () => {
+  console.log("responseId = " + responseId);
+  await docClient
+    .update(updateParams, function (err, data) {
+      if (err) {
+        console.log("Error", err);
+      } else {
+        console.log("Success", data);
+      }
+    })
+    .promise();
+};
+
+let DB = [];
+
+// get request params
+var getParams = {
+  TableName: "mascontest1",
+  Key: { "qut-username": "n8844488@qut.edu.au", "my-basic-key": "test" },
+};
+
+// get request
+var getRequest = async () =>
+  await docClient
+    .get(getParams, function (err, data) {
+      if (err) {
+        console.log("Error", err);
+      } else {
+        console.log("Success", data.Item);
+        DB = data.Item.counter;
+        console.log("DB = ");
+        console.log(DB);
+      }
+    })
+    .promise();
+
 // get coordinates from result
 getCoords = (route) => {
   var coords = [];
@@ -92,7 +169,7 @@ getCoords = (route) => {
 
   return coords;
 };
- 
+
 generateResponse = (id, route, cost) => {
   return {
     id: id,
@@ -118,7 +195,7 @@ var calculateRoute = (maze) => {
   var closedSet = []; // completely evaluated cells
   var path = []; // path to end
   var calcs = 0; // number of calculations taken
-  
+
   openSet.push(start);
 
   while (openSet.length > 0) {
