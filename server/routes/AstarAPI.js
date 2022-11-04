@@ -7,6 +7,7 @@ const lib = require("../modules/lib");
 
 // Load the AWS SDK for Node.js
 var AWS = require("aws-sdk");
+// const { ConfigurationServicePlaceholders } = require("aws-sdk/lib/config_service_placeholders");
 
 // Set the region
 AWS.config.update({
@@ -16,32 +17,35 @@ AWS.config.update({
   aws_session_token: process.env.AWS_SESSION_TOKEN,
 });
 
-console.log(AWS.config.AWS_ACCESS_KEY_ID);
-console.log(AWS.config.AWS_SECRET_ACCESS_KEY);
-console.log(AWS.config.AWS_SESSION_TOKEN);
+// console.log(AWS.config.AWS_ACCESS_KEY_ID);
+// console.log(AWS.config.AWS_SECRET_ACCESS_KEY);
+// console.log(AWS.config.AWS_SESSION_TOKEN);
 
 // Create DynamoDB document client
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
-// var responseId = "";
-// var routeCoords = [];
-// var cost = 0;
+var test;
 
 router.get("/:cols/:rows/:seed", async (req, res) => {
   try {
     // check database
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
-
+    
     getParams.Key["id"] = responseId;
-    await getRequest();
+    var getResult = await getRequest();
 
-    // if found, return result
+    if (getResult.Item != null) {
+      // update cache
+
+      res.json(getResult);
+      console.log("Astar response sent from DB");
+
+      return;
+    }
 
     var now = new Date().getTime();
 
     var blankGrid = lib.makeGrid(req.params.cols, req.params.rows);
-
     var maze = lib.generateMaze(blankGrid, req.params.seed);
-
     var results = calculateRoute(maze);
 
     // no route found
@@ -51,24 +55,17 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     }
 
     var routeCoords = getCoords(results[0]);
-
     var cost = results[1];
-
-    // console.log(routeCoords);
 
     // responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
     var response = generateResponse(responseId, routeCoords, cost);
 
-    // save path to database
-    // set new value in request params
-    // updateParams.ExpressionAttributeValues[":n"] = routeCoords;
-    // updateParams.ExpressionAttributeValues[":x"] = cost;
-    // updateParams.Key["id"] = responseId;
-    // putParams.Key["id"] = responseId;
+    // set new value in put request params
     putParams.Item["id"] = responseId;
     putParams.Item["path"] = routeCoords;
     putParams.Item["speed"] = cost;
-    // await updateRequest();
+
+    // save to database
     await putRequest();
 
     // save path to cache
@@ -87,7 +84,7 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
   }
 });
 
-// put request params
+// DB put request params
 var putParams = {
   TableName: "mascon1",
   Item: {
@@ -98,10 +95,10 @@ var putParams = {
   }
 };
 
-// update request
+// DB put request
 var putRequest = async () => {
   await docClient
-    .put(putParams, function (err, data) {
+    .put(putParams, await function (err, data) {
       if (err) {
         console.log("Error", err);
       } else {
@@ -126,13 +123,11 @@ var getRequest = async () =>
       if (err) {
         console.log("Error", err);
       } else {
+        console.log("calllllllllllllllllllllllllllled")
         console.log("Success", data.Item);
-        DB = data.Item.counter;
-        console.log("DB = ");
-        console.log(DB);
+        return data.Item;
       }
-    })
-    .promise();
+    }).promise();
 
 // get coordinates from result
 getCoords = (route) => {
