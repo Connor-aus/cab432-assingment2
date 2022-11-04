@@ -16,44 +16,23 @@ AWS.config.update({
   aws_session_token: process.env.AWS_SESSION_TOKEN,
 });
 
-console.log(AWS.config.aws_access_key_id);
-console.log(AWS.config.aws_secret_access_key);
-console.log(AWS.config.aws_session_token);
-
-var responseId = "test";
+console.log(AWS.config.AWS_ACCESS_KEY_ID);
+console.log(AWS.config.AWS_SECRET_ACCESS_KEY);
+console.log(AWS.config.AWS_SESSION_TOKEN);
 
 // Create DynamoDB document client
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+// var responseId = "";
+// var routeCoords = [];
+// var cost = 0;
 
 router.get("/:cols/:rows/:seed", async (req, res) => {
-  // let gameData;
-  // let searchedGame;
-
-  // // API2: find info relating to multiple games
-  // try {
-  //   let data = multipleGameReqData(gameData);
-  //   let config = buildReqConfig(data);
-
-  //   let response = await axios(config);
-
-  //   // searched game filtered from array and added to beginning
-  //   responseData = response.data.filter(game => {
-  //     if (game.id == searchedGame)
-  //       searchedGame = game;
-  //     else
-  //       return game;
-  //   });
-  //   responseData.unshift(searchedGame);
-
-  //   res.json(responseData);
-
-  //   console.log(`Successful query: search info for ${req.params.game} and similar games`);
-  // } catch (err) {
-  //   console.log("Error fetching game info : " + err);
-  // }
-
   try {
     // check database
+    var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
+
+    getParams.Key["id"] = responseId;
+    await getRequest();
 
     // if found, return result
 
@@ -77,14 +56,20 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     // console.log(routeCoords);
 
-    responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
+    // responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
     var response = generateResponse(responseId, routeCoords, cost);
 
     // save path to database
     // set new value in request params
-    updateParams.ExpressionAttributeValues[":n"] = routeCoords;
-    await updateRequest();
-    await getRequest();
+    // updateParams.ExpressionAttributeValues[":n"] = routeCoords;
+    // updateParams.ExpressionAttributeValues[":x"] = cost;
+    // updateParams.Key["id"] = responseId;
+    // putParams.Key["id"] = responseId;
+    putParams.Item["id"] = responseId;
+    putParams.Item["path"] = routeCoords;
+    putParams.Item["speed"] = cost;
+    // await updateRequest();
+    await putRequest();
 
     // save path to cache
 
@@ -102,27 +87,21 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
   }
 });
 
-//update request params
-var updateParams = {
-  TableName: "mascontest1",
-  ExpressionAttributeNames: {
-    "#c": "counter",
-  },
-  Key: {
+// put request params
+var putParams = {
+  TableName: "mascon1",
+  Item: {
     "qut-username": "n8844488@qut.edu.au",
-    "my-basic-key": `${responseId}`,
-  },
-  UpdateExpression: "set #c = :n",
-  ExpressionAttributeValues: {
-    ":n": 0,
-  },
+    "id": ``,
+    "path": [],
+    "speed": 0,
+  }
 };
 
 // update request
-var updateRequest = async () => {
-  console.log("responseId = " + responseId);
+var putRequest = async () => {
   await docClient
-    .update(updateParams, function (err, data) {
+    .put(putParams, function (err, data) {
       if (err) {
         console.log("Error", err);
       } else {
@@ -136,8 +115,8 @@ let DB = [];
 
 // get request params
 var getParams = {
-  TableName: "mascontest1",
-  Key: { "qut-username": "n8844488@qut.edu.au", "my-basic-key": "test" },
+  TableName: "mascon1",
+  Key: { "qut-username": "n8844488@qut.edu.au", "id": "test" },
 };
 
 // get request
@@ -158,14 +137,8 @@ var getRequest = async () =>
 // get coordinates from result
 getCoords = (route) => {
   var coords = [];
-  //console.log(route);
 
   route.forEach((c) => coords.push([c.x, c.y]));
-
-  // for (var i = 0; i < route.length; i++) {
-  //   coords.push([route[i].x, route[i].y]);
-  //   console.log(route[i].x, route[i].y);
-  // }
 
   return coords;
 };
@@ -179,7 +152,6 @@ generateResponse = (id, route, cost) => {
 };
 
 //heuristic we will be using - Manhattan distance
-//for other heuristics visit - https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
 function heuristic(position0, position1) {
   let d1 = Math.abs(position1.x - position0.x);
   let d2 = Math.abs(position1.y - position0.y);
@@ -261,42 +233,5 @@ var calculateRoute = (maze) => {
   //no solution by default
   return [];
 };
-
-// // request data when looking for a game by name
-// let singleGameReqData = (game) => {
-//   return `fields: similar_games; search: "${game}";`;
-// };
-
-// // request data when looking for multiple games by id
-// let multipleGameReqData = (gameData) => {
-//   let ids = gameData.id.toString();
-
-//   // set max of 9 to ensure searched game isn't excluded
-//   // request only returns 10 results in ascending order of id
-//   let count = gameData.similar_games.length;
-
-//   if (count >= 10) count = 9;
-
-//   for (let i = 0; i < count; i++) {
-//     ids = ids.concat(",");
-//     ids = ids.concat(gameData.similar_games[i].toString());
-//   }
-
-//   return `fields name, rating, summary; where id = (${ids});`;
-// };
-
-// // generates request config
-// let buildReqConfig = (data) => {
-//   return {
-//     method: "post",
-//     url: "https://api.igdb.com/v4/games",
-//     headers: {
-//       "Client-ID": `${process.env.IGDB_CLIENT_ID}`,
-//       Authorization: `${process.env.IGDB_AUTHORIZATION}`,
-//       "Content-Type": "text/plain",
-//     },
-//     data: data,
-//   };
-// };
 
 module.exports = router;

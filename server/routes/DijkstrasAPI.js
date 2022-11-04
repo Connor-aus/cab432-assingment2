@@ -6,32 +6,6 @@ const router = express.Router();
 const lib = require("../modules/lib");
 
 router.get("/:cols/:rows/:seed", async (req, res) => {
-  // let gameData;
-  // let searchedGame;
-
-  // // API2: find info relating to multiple games
-  // try {
-  //   let data = multipleGameReqData(gameData);
-  //   let config = buildReqConfig(data);
-
-  //   let response = await axios(config);
-
-  //   // searched game filtered from array and added to beginning
-  //   responseData = response.data.filter(game => {
-  //     if (game.id == searchedGame)
-  //       searchedGame = game;
-  //     else
-  //       return game;
-  //   });
-  //   responseData.unshift(searchedGame);
-
-  //   res.json(responseData);
-
-  //   console.log(`Successful query: search info for ${req.params.game} and similar games`);
-  // } catch (err) {
-  //   console.log("Error fetching game info : " + err);
-  // }
-
   try {
     // check database
 
@@ -52,25 +26,25 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     }
 
     var routeCoords = getCoords(results[0]);
-    
+
     var cost = results[1];
-    
+
     // console.log(routeCoords);
-    
-    var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
+
+    var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Dijkstra`;
     var response = generateResponse(responseId, routeCoords, cost);
-    
+
     // save path to database
-    
+
     // save path to cache
-    
-        var later = new Date().getTime();
-        var totalTime = later - now;
-        console.log("total D time = " + totalTime);
-        console.log("length = " + results[0].length);
+
+    var later = new Date().getTime();
+    var totalTime = later - now;
+    console.log("total D time = " + totalTime);
+    console.log("length = " + results[0].length);
 
     res.json(response);
-    
+
     console.log("Dijkstras response sent");
   } catch (err) {
     console.log("Error calculating route Astar: ");
@@ -92,7 +66,7 @@ getCoords = (route) => {
 
   return coords;
 };
- 
+
 generateResponse = (id, route, cost) => {
   return {
     id: id,
@@ -118,7 +92,7 @@ var calculateRoute = (maze) => {
   var closedSet = []; // completely evaluated cells
   var path = []; // path to end
   var calcs = 0; // number of calculations taken
-  
+
   openSet.push(start);
 
   while (openSet.length > 0) {
@@ -184,42 +158,5 @@ var calculateRoute = (maze) => {
   //no solution by default
   return [];
 };
-
-// // request data when looking for a game by name
-// let singleGameReqData = (game) => {
-//   return `fields: similar_games; search: "${game}";`;
-// };
-
-// // request data when looking for multiple games by id
-// let multipleGameReqData = (gameData) => {
-//   let ids = gameData.id.toString();
-
-//   // set max of 9 to ensure searched game isn't excluded
-//   // request only returns 10 results in ascending order of id
-//   let count = gameData.similar_games.length;
-
-//   if (count >= 10) count = 9;
-
-//   for (let i = 0; i < count; i++) {
-//     ids = ids.concat(",");
-//     ids = ids.concat(gameData.similar_games[i].toString());
-//   }
-
-//   return `fields name, rating, summary; where id = (${ids});`;
-// };
-
-// // generates request config
-// let buildReqConfig = (data) => {
-//   return {
-//     method: "post",
-//     url: "https://api.igdb.com/v4/games",
-//     headers: {
-//       "Client-ID": `${process.env.IGDB_CLIENT_ID}`,
-//       Authorization: `${process.env.IGDB_AUTHORIZATION}`,
-//       "Content-Type": "text/plain",
-//     },
-//     data: data,
-//   };
-// };
 
 module.exports = router;
