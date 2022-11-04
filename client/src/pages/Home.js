@@ -13,6 +13,9 @@ export function Home() {
   const [playerX, setPlayerX] = useState(0);
   const [playerY, setPlayerY] = useState(0);
   const [maze, setMaze] = useState([]);
+  const [intervalArray, setIntervalArray] = useState([]);
+  const [intervalSpeed, setIntervalSpeed] = useState(500);
+  const [start, setStart] = useState(false);
 
   const [AstarPath, setAstarPath] = useState([]);
   const [AstarSpeed, setAstarSpeed] = useState(0);
@@ -29,13 +32,13 @@ export function Home() {
   const [dijkstrasX, setDijkstrasX] = useState(0);
   const [dijkstrasY, setDijkstrasY] = useState(0);
 
-  const cols = 100; //columns in the grid
-  const rows = 100; //rows in the grid
+  const cols = 10; //columns in the maze
+  const rows = 10; //rows in the maze
 
-  // inititate the a blank grid
+  // inititate a blank grid
   var blankGrid = makeGrid(cols, rows);
 
-  // callback function for seed value selection
+  // callback function setting the seed value
   const searchSeed = (seedInput) => {
     var seedInt = parseInt(seedInput);
     if (typeof seedInt != "number") {
@@ -52,11 +55,18 @@ export function Home() {
     setErrorMessage("seed must be between 0 - 100000");
   };
 
-  // register key events
+  // register key events for moving player
+  // and starting game
   document.onkeydown = (e) => {
     e = e || window.event;
 
-    if (maze.length < 1) return;
+    if (maze.length < 1 || seed == 0) return;
+
+    console.log(e.code);
+
+    if (e.code === "Space") setStart(true);
+
+    if (start == false) return;
 
     if (e.code === "KeyW" && playerY > 0) {
       if (maze[playerX][playerY].up) {
@@ -90,49 +100,61 @@ export function Home() {
   };
 
   // player moved
+  // re-render and start game
   useEffect(() => {}, [playerY], [playerX]);
-
-  // useEffect(() => {
-  //   intervalStopFunction(myInterval)
-  // }, [seed]);
 
   function intervalStopFunction(interval) {
     clearInterval(interval);
+    setStart(false);
   }
 
   // game start
   useEffect(() => {
-    if (AstarSpeed == 0) return;
+    if (start == false) return;
 
-    // console.log(AstarPath);
+    console.log("starting game");
 
-    console.log("hit");
-
+    // refence index of coordindates array
     var index = 0;
-    var currentSeed = seed;
 
-    function printAstar(i, currentSeed, seed) {
-      if (currentSeed != seed) intervalStopFunction(myInterval);
+    console.log(intervalSpeed);
 
+    function printAstar(i) {
       setAstarX(AstarPath[i][0]);
       setAstarY(AstarPath[i][1]);
 
       if (i >= AstarPath.length - 1) intervalStopFunction(myInterval);
 
       index++;
-      console.log(i);
     }
 
-    const myInterval = setInterval(
-      () => printAstar(index, currentSeed, seed),
-      10
-    );
-  }, [AstarSpeed]);
+    const myInterval = setInterval(() => printAstar(index), intervalSpeed);
 
-  // triggers API request for game data
+    intervalArray.push(myInterval);
+  }, [start]);
+
+  // triggers API request for path data
   useEffect(() => {
     (async () => {
       if (seed == 0) return;
+
+      setStart(false);
+
+      for (var i = 0; i < intervalArray; i++) {
+        intervalStopFunction(intervalArray[i]);
+      }
+
+      setIntervalArray([]);
+
+      // reset player positions
+      setPlayerX(0);
+      setPlayerY(0);
+      setAstarX(0);
+      setAstarY(0);
+      setBFSX(0);
+      setBFSY(0);
+      setDijkstrasX(0);
+      setDijkstrasY(0);
 
       try {
         // construct key
@@ -153,14 +175,14 @@ export function Home() {
           // console.log("Astar path is long = " + data.path.length);
 
           if (data.length < 1) {
-            setErrorMessage("path not found for Astar");
+            console.log("path not found for Astar");
             return;
           }
 
           setAstarPath(data.path);
           setAstarSpeed(Math.random);
 
-          setErrorMessage("");
+          // set text to bold
 
           console.log("Successful Astar path");
         };
@@ -176,14 +198,14 @@ export function Home() {
           // console.log("BFS path is long = " + data.path.length);
 
           if (data.length < 1) {
-            setErrorMessage("path not found for BFS");
+            console.log("path not found for BFS");
             return;
           }
 
           setBFSPath(data.path);
           setBFSSpeed(Math.random);
 
-          setErrorMessage("");
+          // set text to bold
 
           console.log("Successful BFS path");
         };
@@ -199,19 +221,18 @@ export function Home() {
           // console.log("Dijsktras path is long = " + data.path.length);
 
           if (data.length < 1) {
-            setErrorMessage("path not found for Dijkstras");
+            console.log("path not found for Dijkstras");
             return;
           }
 
           setDijkstrasPath(data.path);
           setDijkstrasSpeed(Math.random);
 
-          setErrorMessage("");
+          // set text to bold
 
           console.log("Successful Dijkstras path");
         };
 
-        // Promise.all([getAstarPath, getBFSPath, getDijkstrasPath]);
         getAstarPath();
         getBFSPath();
         getDijkstrasPath();
@@ -232,7 +253,7 @@ export function Home() {
 
       setMaze(result);
 
-      setAstarX(blankGrid.length - 1);
+      // setAstarX(blankGrid.length - 1);
     })();
   }, [seed]);
 
@@ -420,29 +441,21 @@ function generateMaze(grid, seed) {
     //console.log(direction + " = direction");
     switch (direction) {
       case right:
-        // grid[x][y].walls += 1;
-        // grid[x + 1][y].walls += 4;
         grid[x][y].right = true;
         grid[x + 1][y].left = true;
         x++;
         break;
       case down:
-        // grid[x][y].walls += 2;
-        // grid[x][y + 1].walls += 8;
         grid[x][y].down = true;
         grid[x][y + 1].up = true;
         y++;
         break;
       case left:
-        // grid[x][y].walls += 4;
-        // grid[x - 1][y].walls += 1;
         grid[x][y].left = true;
         grid[x - 1][y].right = true;
         x--;
         break;
       case up:
-        // grid[x][y].walls += 8;
-        // grid[x][y - 1].walls += 2;
         grid[x][y].up = true;
         grid[x][y - 1].down = true;
         y--;
@@ -472,23 +485,18 @@ function generateMaze(grid, seed) {
   //console.log("visited = " + visited);
   //console.log(grid);
 
-  var centre = [width / 2 - 1, height / 2 - 1];
-  // grid[cols / 2 - 1][rows / 2 - 1].walls = 15;
+  // set centre of map
+  // var centre = [width / 2 - 1, height / 2 - 1];
 
-  grid[centre[0]][centre[1]].up = true;
-  grid[centre[0]][centre[1]].down = true;
-  grid[centre[0]][centre[1]].right = true;
-  grid[centre[0]][centre[1]].left = true;
+  // grid[centre[0]][centre[1]].up = true;
+  // grid[centre[0]][centre[1]].down = true;
+  // grid[centre[0]][centre[1]].right = true;
+  // grid[centre[0]][centre[1]].left = true;
 
-  grid[centre[0]][centre[1] + 1].up = true;
-  grid[centre[0]][centre[1] - 1].down = true;
-  grid[centre[0] + 1][centre[1]].left = true;
-  grid[centre[0] - 1][centre[1]].right = true;
-
-  // console.log(grid[0][0])
-  // console.log(grid[0][1])
-  // console.log(grid[9][9])
-  // console.log(grid[9][8])
+  // grid[centre[0]][centre[1] + 1].up = true;
+  // grid[centre[0]][centre[1] - 1].down = true;
+  // grid[centre[0] + 1][centre[1]].left = true;
+  // grid[centre[0] - 1][centre[1]].right = true;
 
   return grid;
 }

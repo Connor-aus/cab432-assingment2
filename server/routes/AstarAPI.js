@@ -52,6 +52,7 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     }
 
     var routeCoords = getCoords(results[0]);
+
     var cost = results[1];
 
     // console.log(routeCoords);
@@ -59,15 +60,17 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
     var response = generateResponse(responseId, routeCoords, cost);
 
-    var later = new Date().getTime();
-    console.log("total time = " + (later - now));
-
     // save path to database
 
     // save path to cache
 
+    var later = new Date().getTime();
+    var totalTime = later - now;
+    console.log("total A time = " + totalTime);
+    console.log("length = " + results[0].length);
+
     res.json(response);
-    
+
     console.log("Astar response sent");
   } catch (err) {
     console.log("Error calculating route Astar: ");
@@ -75,6 +78,7 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
   }
 });
 
+// get coordinates from result
 getCoords = (route) => {
   var coords = [];
   //console.log(route);
@@ -88,7 +92,7 @@ getCoords = (route) => {
 
   return coords;
 };
-
+ 
 generateResponse = (id, route, cost) => {
   return {
     id: id,
@@ -96,18 +100,6 @@ generateResponse = (id, route, cost) => {
     speed: cost,
   };
 };
-
-// let cols = 10; //columns in the grid
-// let rows = 10; //rows in the grid
-
-// let grid = new Array(cols); //array of all the grid points
-
-let openSet = []; //array containing unevaluated grid points
-let closedSet = []; //array containing completely evaluated grid points
-
-let start; //starting grid point
-let end; // ending grid point (goal)
-let path = [];
 
 //heuristic we will be using - Manhattan distance
 //for other heuristics visit - https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
@@ -120,15 +112,20 @@ function heuristic(position0, position1) {
 
 //A star search implementation
 var calculateRoute = (maze) => {
-  start = maze[0][0];
-  end = maze[maze.length - 1][maze[0].length - 1];
-
+  var start = maze[0][0];
+  var end = maze[maze.length - 1][maze[0].length - 1];
+  var openSet = []; // unevaluated cells
+  var closedSet = []; // completely evaluated cells
+  var path = []; // path to end
+  var calcs = 0; // number of calculations taken
+  
   openSet.push(start);
 
   while (openSet.length > 0) {
     //assumption lowest index is the first one to begin with
     let lowestIndex = 0;
     for (let i = 0; i < openSet.length; i++) {
+      calcs++;
       if (openSet[i].totalCost < openSet[lowestIndex].totalCost) {
         lowestIndex = i;
       }
@@ -143,11 +140,10 @@ var calculateRoute = (maze) => {
         temp = temp.parent;
       }
 
-      // console.log("DONE!");
       // return the traced path
       var result = [];
       result.push(path.reverse());
-      result.push(end.totalCost);
+      result.push(calcs);
 
       // console.log(result[0]);
       return result;
@@ -160,7 +156,7 @@ var calculateRoute = (maze) => {
     closedSet.push(current);
 
     lib.updateNeighbours(current, maze);
-    var neighbours = current.neighbours; 
+    var neighbours = current.neighbours;
 
     // console.log(neighbours);
 
