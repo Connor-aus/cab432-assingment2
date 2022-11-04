@@ -10,12 +10,15 @@ import "./../css/style.css";
 export function Home() {
   const [seed, setSeed] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
-  const [playerX, setPlayerX] = useState(0);
-  const [playerY, setPlayerY] = useState(0);
   const [maze, setMaze] = useState([]);
+  const [mazeEnd, setMazeEnd] = useState([]);
   const [intervalArray, setIntervalArray] = useState([]);
   const [intervalSpeed, setIntervalSpeed] = useState(500);
   const [start, setStart] = useState(false);
+
+  const [playerSeed, setPlayerSpeed] = useState(0);
+  const [playerX, setPlayerX] = useState(0);
+  const [playerY, setPlayerY] = useState(0);
 
   const [AstarPath, setAstarPath] = useState([]);
   const [AstarSpeed, setAstarSpeed] = useState(0);
@@ -34,9 +37,6 @@ export function Home() {
 
   const cols = 10; //columns in the maze
   const rows = 10; //rows in the maze
-
-  // inititate a blank grid
-  var blankGrid = makeGrid(cols, rows);
 
   // callback function setting the seed value
   const searchSeed = (seedInput) => {
@@ -62,36 +62,30 @@ export function Home() {
 
     if (maze.length < 1 || seed == 0) return;
 
-    console.log(e.code);
-
     if (e.code === "Space") setStart(true);
 
     if (start == false) return;
 
     if (e.code === "KeyW" && playerY > 0) {
       if (maze[playerX][playerY].up) {
-        console.log("up arrow pressed");
         setPlayerY((y) => {
           return y - 1;
         });
       }
     } else if (e.code === "KeyD" && playerX < cols - 1) {
       if (maze[playerX][playerY].right) {
-        console.log("right arrow pressed");
         setPlayerX((x) => {
           return x + 1;
         });
       }
     } else if (e.code === "KeyS" && playerY < rows - 1) {
       if (maze[playerX][playerY].down) {
-        console.log("down arrow pressed");
         setPlayerY((y) => {
           return y + 1;
         });
       }
     } else if (e.code === "KeyA" && playerX > 0) {
       if (maze[playerX][playerY].left) {
-        console.log("left arrow pressed");
         setPlayerX((x) => {
           return x - 1;
         });
@@ -100,9 +94,22 @@ export function Home() {
   };
 
   // player moved
-  // re-render and start game
-  useEffect(() => {}, [playerY], [playerX]);
+  // re-render and check win
+  useEffect(() => {
+    setPlayerSpeed((x) => x + 1);
+    
+    // stop all intervals if player has won
+    if(playerX == mazeEnd[0] && playerY == mazeEnd[1]) {
+      for (var i = 0; i < intervalArray; i++) {
+        intervalStopFunction(intervalArray[i]);
+      }
 
+      setIntervalArray([]);
+    }
+
+  }, [playerY, playerX]);
+
+  // stop an interval function
   function intervalStopFunction(interval) {
     clearInterval(interval);
     setStart(false);
@@ -138,12 +145,15 @@ export function Home() {
     (async () => {
       if (seed == 0) return;
 
+      // ensure game doesn't start prematurely
       setStart(false);
 
+      // stop all intervals
       for (var i = 0; i < intervalArray; i++) {
         intervalStopFunction(intervalArray[i]);
       }
 
+      // reset intervals
       setIntervalArray([]);
 
       // reset player positions
@@ -157,11 +167,7 @@ export function Home() {
       setDijkstrasY(0);
 
       try {
-        // construct key
-        var key = `${cols}x${rows}.${seed}.Astar`;
-        var exampleKey = "50x50.80.Astar";
-
-        // check redis cache
+        // TODO check redis cache
 
         // pass to server
         let getAstarPath = async () => {
@@ -170,7 +176,7 @@ export function Home() {
           let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
           let data = await res.json();
 
-          //console.log(data);
+          console.log(data.speed);
 
           // console.log("Astar path is long = " + data.path.length);
 
@@ -249,17 +255,18 @@ export function Home() {
 
       console.log("rendering map");
 
+      // inititate a blank grid
+      var blankGrid = makeGrid(cols, rows);
+
       var result = generateMaze(blankGrid, seed);
 
       setMaze(result);
 
+      setMazeEnd([cols - 1, rows - 1]);
+
       // setAstarX(blankGrid.length - 1);
     })();
   }, [seed]);
-
-  // console.log("rendered = " + rendered);
-  // console.log(maze);
-  // console.log("player = " + playerX + playerY);
 
   return (
     <Container fluid className="bordercon">
@@ -271,7 +278,14 @@ export function Home() {
           <SearchBar onSubmit={searchSeed} />
         </Col>
       </Row>
-      {error(errorMessage)}
+      <Row>{error(errorMessage)}</Row>
+      <Row>
+        <Col>
+          <h4 style={{ color: "whitesmoke", fontWeight: "bold" }}>
+            Player = {playerSeed}
+          </h4>
+        </Col>
+      </Row>
       <Row>
         <Col>
           <div
