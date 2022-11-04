@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import Button from "react-bootstrap/Button";
 
-import { SearchBar } from "../components/SearchBar";
-import RandomNumGen from "../components/RandomNumGen";
+import SearchBar from "../components/SearchBar";
+import Instructions from "../components/Instructions";
+import PlayerSpeed from "../components/PlayerSpeed";
+import { makeGrid, generateMaze } from "../modules/GenerateMaze";
 
 import "./../css/style.css";
 
@@ -185,7 +186,6 @@ export function Home() {
       setStart(false);
       stopGame();
 
-      // TODO put sets into array and loop through
       // reset player positions and speed
       setPlayerX(0);
       setPlayerY(0);
@@ -295,47 +295,12 @@ export function Home() {
         </Col>
       </Row>
       <Row>{error(errorMessage)}</Row>
+      <Row>{Instructions()}</Row>
       <Row>
-        <h5 style={{ color: "whitesmoke", fontStyle: "italic" }}>
-          Instructions: This is a game in which you get to race against some of
-          the most efficient, and least efficient, sorting algorithms on the
-          market. The number next to each of the player's names represents the
-          number of calculations that were required to find the correct path.
-        </h5>
-        <br></br>
-        <h5 style={{ color: "whitesmoke", fontStyle: "italic" }}>
-          To begin, enter a seed value above and select "Generate Maze".
-          Remember this seed value if you want to play the same maze again. You
-          can use the "w, a, s, d" keys to move you player.
-        </h5>
-        <br></br>
-        <h5 style={{ color: "whitesmoke", fontStyle: "italic" }}>
-          See if you can beat the mighty algorithms - maybe using less
-          calculations. Study your maze, then press "space" to begin the race.
-        </h5>
-        <br></br>
-      </Row>
-      <Row>
-        <Col>
-          <h4 style={{ color: "red", fontWeight: "bold" }}>
-            Player = {playerSpeed}
-          </h4>
-        </Col>
-        <Col>
-          <h4 style={{ color: "blue", fontWeight: "bold" }}>
-            Astar = {speedCheck(AstarSpeed)}
-          </h4>
-        </Col>
-        <Col>
-          <h4 style={{ color: "green", fontWeight: "bold" }}>
-            BFS = {speedCheck(BFSSpeed)}
-          </h4>
-        </Col>
-        <Col>
-          <h4 style={{ color: "orange", fontWeight: "bold" }}>
-            Dijkstra's = {speedCheck(dijkstrasSpeed)}
-          </h4>
-        </Col>
+        {PlayerSpeed({ speed: playerSpeed, colour: "red" })}
+        {PlayerSpeed({ speed: AstarSpeed, colour: "blue" })}
+        {PlayerSpeed({ speed: BFSSpeed, colour: "green" })}
+        {PlayerSpeed({ speed: dijkstrasSpeed, colour: "orange" })}
       </Row>
       <Row>
         <Col>
@@ -348,7 +313,6 @@ export function Home() {
           >
             {maze.map((col, yIndex) =>
               col.map((cell, xIndex) => {
-                calculateWalls(maze[cell.x][cell.y]);
                 if (xIndex == playerX && yIndex == playerY) {
                   return (
                     <div
@@ -401,7 +365,6 @@ export function Home() {
   );
 }
 
-// TODO move to component
 // error message
 const error = (message) => {
   if (message === "") return;
@@ -414,173 +377,3 @@ const error = (message) => {
     </Row>
   );
 };
-
-// TODO move to library
-function speedCheck(speed) {
-  if (speed == 0) return "?";
-  else return speed;
-}
-
-// TODO - move ALL this to a component
-
-// directions
-const right = 1;
-const down = 2;
-const left = 4;
-const up = 8;
-
-// represents a gridpoint
-class Cell {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.walls = 0;
-    this.up = false;
-    this.down = false;
-    this.right = false;
-    this.left = false;
-    this.visited = false;
-  }
-}
-
-// inititate the a blank grid
-function makeGrid(width, height) {
-  var grid = [width];
-
-  for (let i = 0; i < width; i++) {
-    grid[i] = [height];
-
-    for (let j = 0; j < height; j++) {
-      grid[i][j] = new Cell(i, j);
-    }
-  }
-
-  return grid;
-}
-
-function chooseDirection(grid, neighbours, x, y, seed) {
-  var validDirections = [];
-
-  if (neighbours.includes(right))
-    if (!grid[x + 1][y].visited) validDirections.push(right); // right
-
-  if (neighbours.includes(up))
-    if (!grid[x][y - 1].visited) validDirections.push(up); // up
-
-  if (neighbours.includes(left))
-    if (!grid[x - 1][y].visited) validDirections.push(left); // left
-
-  if (neighbours.includes(down))
-    if (!grid[x][y + 1].visited) validDirections.push(down); // down
-
-  var numberOfDirections = validDirections.length;
-
-  if (numberOfDirections < 1) return 0; // no options
-
-  // use modula result as the index for the selection
-  return validDirections[seed % numberOfDirections];
-}
-
-function getNeighbours(x, y, cols, rows) {
-  var neighbours = [];
-
-  if (x < 0 || x >= cols || y < 0 || y >= rows) return neighbours;
-
-  if (x < cols - 1) neighbours.push(right);
-
-  if (y < rows - 1) neighbours.push(down);
-
-  if (x > 0) neighbours.push(left);
-
-  if (y > 0) neighbours.push(up);
-
-  return neighbours;
-}
-
-function generateMaze(grid, seed) {
-  var width = grid[0].length;
-  var height = grid.length;
-
-  var x = 0;
-  var y = 0;
-  grid[x][y].visited = true;
-  var stack = [];
-  stack.push([x, y]);
-
-  let visited = 1;
-  const size = width * height;
-  var options = true;
-  var index = [];
-  var direction;
-
-  while (visited < size) {
-    var neighbours = getNeighbours(x, y, width, height);
-
-    options = true;
-
-    seed = RandomNumGen(seed);
-
-    direction = chooseDirection(grid, neighbours, x, y, seed);
-    switch (direction) {
-      case right:
-        grid[x][y].right = true;
-        grid[x + 1][y].left = true;
-        x++;
-        break;
-      case down:
-        grid[x][y].down = true;
-        grid[x][y + 1].up = true;
-        y++;
-        break;
-      case left:
-        grid[x][y].left = true;
-        grid[x - 1][y].right = true;
-        x--;
-        break;
-      case up:
-        grid[x][y].up = true;
-        grid[x][y - 1].down = true;
-        y--;
-        break;
-      default:
-        options = false;
-        break;
-    }
-
-    if (options) {
-      stack.push([x, y]);
-      grid[x][y].visited = true;
-      visited++;
-
-      continue;
-    }
-
-    index = stack.pop();
-    x = index[0];
-    y = index[1];
-  }
-
-  // grid[centre[0]][centre[1]].up = true;
-  // grid[centre[0]][centre[1]].down = true;
-  // grid[centre[0]][centre[1]].right = true;
-  // grid[centre[0]][centre[1]].left = true;
-
-  // grid[centre[0]][centre[1] + 1].up = true;
-  // grid[centre[0]][centre[1] - 1].down = true;
-  // grid[centre[0] + 1][centre[1]].left = true;
-  // grid[centre[0] - 1][centre[1]].right = true;
-
-  return grid;
-}
-
-function calculateWalls(cell) {
-  cell.walls = 0;
-
-  if (cell.right == true) cell.walls += right;
-
-  if (cell.down == true) cell.walls += down;
-
-  if (cell.left == true) cell.walls += left;
-
-  if (cell.up == true) cell.walls += up;
-}

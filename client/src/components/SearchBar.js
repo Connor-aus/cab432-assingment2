@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Button from "react-bootstrap/Button";
 import { Container, Col } from "react-bootstrap";
 
-export function SearchBar(props) {
+export default function SearchBar(props) {
   const [searchText, setsearchText] = useState("");
   const placeholderText = " enter a seed value";
 
