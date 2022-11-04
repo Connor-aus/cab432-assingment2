@@ -12,9 +12,11 @@ export function Home() {
   const [errorMessage, setErrorMessage] = useState("");
   const [maze, setMaze] = useState([]);
   const [mazeEnd, setMazeEnd] = useState([]);
-  const [intervalArray, setIntervalArray] = useState([]);
-  const [intervalSpeed, setIntervalSpeed] = useState(500);
   const [start, setStart] = useState(false);
+  const [intervalSpeed, setIntervalSpeed] = useState(200); // speed modifier
+  const [intervalA, setIntervalA] = useState();
+  const [intervalB, setIntervalB] = useState();
+  const [intervalD, setIntervalD] = useState();
 
   const [playerSpeed, setPlayerSpeed] = useState(0);
   const [playerX, setPlayerX] = useState(0);
@@ -37,8 +39,8 @@ export function Home() {
 
   // TODO create instructions popup
 
-  const cols = 10; //columns in the maze
-  const rows = 10; //rows in the maze
+  const cols = 100; //columns in the maze
+  const rows = 100; //rows in the maze
 
   // callback function setting the seed value
   const searchSeed = (seedInput) => {
@@ -95,29 +97,28 @@ export function Home() {
     }
   };
 
+  // stop game
+  function stopGame() {
+    clearInterval(intervalA);
+    clearInterval(intervalB);
+    clearInterval(intervalD);
+
+    setIntervalA();
+    setIntervalB();
+    setIntervalD();
+  }
+
   // player moved
   // re-render and check win
   useEffect(() => {
     setPlayerSpeed((x) => x + 1);
-    
     // stop all intervals if player has won
-    if(playerX == mazeEnd[0] && playerY == mazeEnd[1]) {
-      for (var i = 0; i < intervalArray; i++) {
-        intervalStopFunction(intervalArray[i]);
-      }
-
-      setIntervalArray([]);
+    if (playerX == mazeEnd[0] && playerY == mazeEnd[1]) {
+      stopGame();
 
       // TODO print results
     }
-
   }, [playerY, playerX]);
-
-  // stop an interval function
-  function intervalStopFunction(interval) {
-    clearInterval(interval);
-    setStart(false);
-  }
 
   // game start
   useEffect(() => {
@@ -125,23 +126,54 @@ export function Home() {
 
     console.log("starting game");
 
-    // refence index of coordindates array
-    var index = 0;
-
-    console.log(intervalSpeed);
+    // refence index of coordindates arrays
+    var indexA = 0;
+    var indexB = 0;
+    var indexD = 0;
 
     function printAstar(i) {
       setAstarX(AstarPath[i][0]);
       setAstarY(AstarPath[i][1]);
 
-      if (i >= AstarPath.length - 1) intervalStopFunction(myInterval);
+      if (i >= AstarPath.length - 1) clearInterval(intervalAstar);
 
-      index++;
+      indexA++;
     }
 
-    const myInterval = setInterval(() => printAstar(index), intervalSpeed);
+    function printBFS(i) {
+      setBFSX(BFSPath[i][0]);
+      setBFSY(BFSPath[i][1]);
 
-    intervalArray.push(myInterval);
+      if (i >= BFSPath.length - 1) clearInterval(intervalBFS);
+
+      indexB++;
+    }
+
+    function printDijkstra(i) {
+      setDijkstrasX(dijkstrasPath[i][0]);
+      setDijkstrasY(dijkstrasPath[i][1]);
+
+      if (i >= dijkstrasPath.length - 1) clearInterval(intervalDijkstras);
+
+      indexD++;
+    }
+
+    const intervalAstar = setInterval(
+      () => printAstar(indexA),
+      (intervalSpeed * AstarSpeed) / (cols * rows)
+    );
+    const intervalBFS = setInterval(
+      () => printBFS(indexB),
+      (intervalSpeed * BFSSpeed) / (cols * rows) + 500
+    );
+    const intervalDijkstras = setInterval(
+      () => printDijkstra(indexD),
+      (intervalSpeed * dijkstrasSpeed) / (cols * rows) - 100
+    );
+
+    setIntervalA(intervalAstar);
+    setIntervalB(intervalBFS);
+    setIntervalD(intervalDijkstras);
   }, [start]);
 
   // triggers API request for path data
@@ -151,14 +183,7 @@ export function Home() {
 
       // ensure game doesn't start prematurely
       setStart(false);
-
-      // stop all intervals
-      for (var i = 0; i < intervalArray; i++) {
-        intervalStopFunction(intervalArray[i]);
-      }
-
-      // reset intervals
-      setIntervalArray([]);
+      stopGame();
 
       // TODO put sets into array and loop through
       // reset player positions and speed
@@ -202,15 +227,13 @@ export function Home() {
           let res = await fetch(`/BFS/${cols}/${rows}/${seed}`);
           let data = await res.json();
 
-          //console.log(data);
-
           if (data.length < 1) {
             console.log("path not found for BFS");
             return;
           }
 
           setBFSPath(data.path);
-          setBFSSpeed(Math.random);
+          setBFSSpeed(data.speed);
 
           console.log("Successful BFS path");
         };
@@ -221,22 +244,20 @@ export function Home() {
           let res = await fetch(`/Dijkstras/${cols}/${rows}/${seed}`);
           let data = await res.json();
 
-          //console.log(data);
-
           if (data.length < 1) {
             console.log("path not found for Dijkstras");
             return;
           }
 
           setDijkstrasPath(data.path);
-          setDijkstrasSpeed(Math.random);
+          setDijkstrasSpeed(data.speed);
 
           console.log("Successful Dijkstras path");
         };
 
         getAstarPath();
-        // getBFSPath();
-        // getDijkstrasPath();
+        getBFSPath();
+        getDijkstrasPath();
       } catch (err) {
         setErrorMessage("error gathering game data");
         console.log("Error fetching data : " + err);
@@ -275,6 +296,26 @@ export function Home() {
       </Row>
       <Row>{error(errorMessage)}</Row>
       <Row>
+        <h5 style={{ color: "whitesmoke", fontStyle: "italic" }}>
+          Instructions: This is a game in which you get to race against some of
+          the most efficient, and least efficient, sorting algorithms on the
+          market. The number next to each of the player's names represents the
+          number of calculations that were required to find the correct path.
+        </h5>
+        <br></br>
+        <h5 style={{ color: "whitesmoke", fontStyle: "italic" }}>
+          To begin, enter a seed value above and select "Generate Maze".
+          Remember this seed value if you want to play the same maze again. You
+          can use the "w, a, s, d" keys to move you player.
+        </h5>
+        <br></br>
+        <h5 style={{ color: "whitesmoke", fontStyle: "italic" }}>
+          See if you can beat the mighty algorithms - maybe using less
+          calculations. Study your maze, then press "space" to begin the race.
+        </h5>
+        <br></br>
+      </Row>
+      <Row>
         <Col>
           <h4 style={{ color: "red", fontWeight: "bold" }}>
             Player = {playerSpeed}
@@ -307,9 +348,8 @@ export function Home() {
           >
             {maze.map((col, yIndex) =>
               col.map((cell, xIndex) => {
+                calculateWalls(maze[cell.x][cell.y]);
                 if (xIndex == playerX && yIndex == playerY) {
-                  calculateWalls(maze[cell.x][cell.y]);
-                  // console.log(maze[cell.x][cell.y]);
                   return (
                     <div
                       key={[cell.y, cell.x]}
@@ -317,17 +357,34 @@ export function Home() {
                     ></div>
                   );
                 } else if (xIndex == AstarX && yIndex == AstarY) {
-                  calculateWalls(maze[cell.x][cell.y]);
-                  // console.log(maze[cell.x][cell.y]);
                   return (
                     <div
                       key={[cell.y, cell.x]}
                       className={`player-2 box-${maze[cell.y][cell.x].walls}`}
                     ></div>
                   );
+                } else if (xIndex == BFSX && yIndex == BFSY) {
+                  return (
+                    <div
+                      key={[cell.y, cell.x]}
+                      className={`player-3 box-${maze[cell.y][cell.x].walls}`}
+                    ></div>
+                  );
+                } else if (xIndex == dijkstrasX && yIndex == dijkstrasY) {
+                  return (
+                    <div
+                      key={[cell.y, cell.x]}
+                      className={`player-4 box-${maze[cell.y][cell.x].walls}`}
+                    ></div>
+                  );
+                } else if (xIndex == mazeEnd[0] && yIndex == mazeEnd[1]) {
+                  return (
+                    <div
+                      key={[cell.y, cell.x]}
+                      className={`finish box-${maze[cell.y][cell.x].walls}`}
+                    ></div>
+                  );
                 } else {
-                  calculateWalls(maze[cell.x][cell.y]);
-                  // console.log(maze[cell.x][cell.y]);
                   return (
                     <div
                       key={[cell.y, cell.x]}
@@ -360,10 +417,8 @@ const error = (message) => {
 
 // TODO move to library
 function speedCheck(speed) {
-  if (speed == 0)
-    return "?";
-  else
-    return speed;
+  if (speed == 0) return "?";
+  else return speed;
 }
 
 // TODO - move ALL this to a component
@@ -459,19 +514,13 @@ function generateMaze(grid, seed) {
   var direction;
 
   while (visited < size) {
-    //console.log(x + " x of new");
-    //console.log(y + " y of new");
     var neighbours = getNeighbours(x, y, width, height);
 
-    //console.log(neighbours + " = neighbours");
-    //console.log(neighbours);
     options = true;
 
-    // generate new random number for each step
     seed = RandomNumGen(seed);
 
     direction = chooseDirection(grid, neighbours, x, y, seed);
-    //console.log(direction + " = direction");
     switch (direction) {
       case right:
         grid[x][y].right = true;
@@ -502,24 +551,14 @@ function generateMaze(grid, seed) {
       stack.push([x, y]);
       grid[x][y].visited = true;
       visited++;
-      //console.log("next " + x + "," + y);
 
       continue;
     }
 
-    //console.log(stack)
-
     index = stack.pop();
-    //console.log("to " + index);
     x = index[0];
     y = index[1];
   }
-
-  //console.log("visited = " + visited);
-  //console.log(grid);
-
-  // set centre of map
-  // var centre = [width / 2 - 1, height / 2 - 1];
 
   // grid[centre[0]][centre[1]].up = true;
   // grid[centre[0]][centre[1]].down = true;
