@@ -16,7 +16,7 @@ export function Home() {
   const [intervalSpeed, setIntervalSpeed] = useState(500);
   const [start, setStart] = useState(false);
 
-  const [playerSeed, setPlayerSpeed] = useState(0);
+  const [playerSpeed, setPlayerSpeed] = useState(0);
   const [playerX, setPlayerX] = useState(0);
   const [playerY, setPlayerY] = useState(0);
 
@@ -34,6 +34,8 @@ export function Home() {
   const [dijkstrasSpeed, setDijkstrasSpeed] = useState(0);
   const [dijkstrasX, setDijkstrasX] = useState(0);
   const [dijkstrasY, setDijkstrasY] = useState(0);
+
+  // TODO create instructions popup
 
   const cols = 10; //columns in the maze
   const rows = 10; //rows in the maze
@@ -105,6 +107,8 @@ export function Home() {
       }
 
       setIntervalArray([]);
+
+      // TODO print results
     }
 
   }, [playerY, playerX]);
@@ -156,15 +160,20 @@ export function Home() {
       // reset intervals
       setIntervalArray([]);
 
-      // reset player positions
+      // TODO put sets into array and loop through
+      // reset player positions and speed
       setPlayerX(0);
       setPlayerY(0);
+      setPlayerSpeed(0);
       setAstarX(0);
       setAstarY(0);
+      setAstarSpeed(0);
       setBFSX(0);
       setBFSY(0);
+      setBFSSpeed(0);
       setDijkstrasX(0);
       setDijkstrasY(0);
+      setDijkstrasSpeed(0);
 
       try {
         // TODO check redis cache
@@ -234,8 +243,6 @@ export function Home() {
           setDijkstrasPath(data.path);
           setDijkstrasSpeed(Math.random);
 
-          // set text to bold
-
           console.log("Successful Dijkstras path");
         };
 
@@ -281,8 +288,23 @@ export function Home() {
       <Row>{error(errorMessage)}</Row>
       <Row>
         <Col>
-          <h4 style={{ color: "whitesmoke", fontWeight: "bold" }}>
-            Player = {playerSeed}
+          <h4 style={{ color: "red", fontWeight: "bold" }}>
+            Player = {playerSpeed}
+          </h4>
+        </Col>
+        <Col>
+          <h4 style={{ color: "blue", fontWeight: "bold" }}>
+            Astar = {speedCheck(AstarSpeed)}
+          </h4>
+        </Col>
+        <Col>
+          <h4 style={{ color: "green", fontWeight: "bold" }}>
+            BFS = {speedCheck(BFSSpeed)}
+          </h4>
+        </Col>
+        <Col>
+          <h4 style={{ color: "orange", fontWeight: "bold" }}>
+            Dijkstra's = {speedCheck(dijkstrasSpeed)}
           </h4>
         </Col>
       </Row>
@@ -334,6 +356,7 @@ export function Home() {
   );
 }
 
+// TODO move to component
 // error message
 const error = (message) => {
   if (message === "") return;
@@ -346,6 +369,14 @@ const error = (message) => {
     </Row>
   );
 };
+
+// TODO move to library
+function speedCheck(speed) {
+  if (speed == 0)
+    return "?";
+  else
+    return speed;
+}
 
 // TODO - move ALL this to a component
 
