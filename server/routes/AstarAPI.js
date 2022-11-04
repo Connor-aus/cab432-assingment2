@@ -1,32 +1,38 @@
 const express = require("express");
 const router = express.Router();
 const lib = require("../modules/lib");
-
-// Load the AWS SDK for Node.js
-var AWS = require("aws-sdk");
-// const { ConfigurationServicePlaceholders } = require("aws-sdk/lib/config_service_placeholders");
-
-// Set the region
-AWS.config.update({
-  region: "ap-southeast-2",
-  aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
-  aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
-  aws_session_token: process.env.AWS_SESSION_TOKEN,
-});
-
-// Create DynamoDB document client
-var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+const dynamoDB = require("../modules/dynamoDB");
+const elasticache = require("../modules/elasticache");
 
 router.get("/:cols/:rows/:seed", async (req, res) => {
   try {
-    // check database
+    // database key
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
+
+    // setup redis
+    var redisClient = elasticache.redisSetup();
+
+    // check cache
+    var getResult = await redisClient.get(responseId);
     
-    getParams.Key["id"] = responseId;
-    var getResult = await getRequest();
+    console.log("redis = ", getResult);
+
+    if (getResult != null) {
+
+      res.json(getResult);
+      console.log("Astar response sent from cache");
+
+      return;
+    }
+
+    return;
+
+    // check dynamo database
+    getResult = await dynamoDB.dynamoGet(responseId);
 
     if (getResult.Item != null) {
       // update cache
+      redisClient.setEx(responseId, 3600, JSON.stringify({ getResult }));
 
       res.json(getResult);
       console.log("Astar response sent from DB");
@@ -81,10 +87,10 @@ var putParams = {
   TableName: "mascon1",
   Item: {
     "qut-username": "n8844488@qut.edu.au",
-    "id": ``,
-    "path": [],
-    "speed": 0,
-  }
+    id: ``,
+    path: [],
+    speed: 0,
+  },
 };
 
 // DB put request
@@ -99,26 +105,6 @@ var putRequest = async () => {
     })
     .promise();
 };
-
-let DB = [];
-
-// get request params
-var getParams = {
-  TableName: "mascon1",
-  Key: { "qut-username": "n8844488@qut.edu.au", "id": "test" },
-};
-
-// get request
-var getRequest = async () =>
-  await docClient
-    .get(getParams, function (err, data) {
-      if (err) {
-        console.log("Error", err);
-      } else {
-        console.log("Success", data.Item);
-        return data.Item;
-      }
-    }).promise();
 
 // get coordinates from result
 getCoords = (route) => {

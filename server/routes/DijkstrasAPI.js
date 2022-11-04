@@ -3,38 +3,6 @@ const router = express.Router();
 const lib = require("../modules/lib");
 const elasticache = require("../modules/elasticache");
 
-require("dotenv").config();
-
-// const app = express();
-const AWS = require("aws-sdk");
-// const redis = require("redis");
-
-// Set the region
-AWS.config.update({
-  region: "ap-southeast-2",
-  aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
-  aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
-  aws_session_token: process.env.AWS_SESSION_TOKEN,
-});
-
-// const { ElastiCacheClient } = require("@aws-sdk/client-elasticache");
-
-// const client = new ElastiCacheClient({ region: "ap-southeast-2" });
-
-// const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
-// var redisClient = redis.createClient({
-//   url: `redis://${elasti}`,
-// });
-
-// (async () => {
-//   try {
-//     await redisClient.connect();
-//     console.log(`connected to Redis`);
-//   } catch (err) {
-//     console.log(`Error connecting to Redis ${err}`);
-//   }
-// })();
-
 router.get("/:cols/:rows/:seed", async (req, res) => {
   try {
     // check database
@@ -59,6 +27,7 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     var cost = results[1];
 
+    console.log("calcs = " + calcs);
     // console.log(routeCoords);
 
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Dijkstra`;
@@ -68,20 +37,9 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     console.log(response);
     console.log(typeof response);
 
-    // connect to redis
-    var redisClient = elasticache.redisSetup();
+    
 
-    // save path to cache
-    redisClient.setEx(
-      responseId,
-      3600,
-      JSON.stringify({ response })
-      );
-
-    const result = await redisClient.get(responseId);
-
-    console.log("=====redistest========");
-    console.log(result);
+    // console.log(result);
 
     var later = new Date().getTime();
     var totalTime = later - now;

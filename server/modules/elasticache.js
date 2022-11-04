@@ -1,7 +1,7 @@
-require("dotenv").config();
-
-const AWS = require("aws-sdk");
 const redis = require("redis");
+
+// Load the AWS SDK for Node.js
+const AWS = require("aws-sdk");
 
 // Set the region
 AWS.config.update({
@@ -10,9 +10,6 @@ AWS.config.update({
   aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
   aws_session_token: process.env.AWS_SESSION_TOKEN,
 });
-
-// const { ElastiCacheClient } = require("@aws-sdk/client-elasticache");
-// const client = new ElastiCacheClient({ region: "ap-southeast-2" });
 
 function redisSetup() {
   const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
