@@ -27,7 +27,7 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     var cost = results[1];
 
-    console.log("calcs = " + calcs);
+    //console.log("calcs = " + calcs);
     // console.log(routeCoords);
 
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Dijkstra`;

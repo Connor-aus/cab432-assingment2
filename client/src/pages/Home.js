@@ -185,19 +185,13 @@ export function Home() {
           let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
           let data = await res.json();
 
-          console.log(data.speed);
-
-          // console.log("Astar path is long = " + data.path.length);
-
           if (data.length < 1) {
             console.log("path not found for Astar");
             return;
           }
 
           setAstarPath(data.path);
-          setAstarSpeed(Math.random);
-
-          // set text to bold
+          setAstarSpeed(data.speed);
 
           console.log("Successful Astar path");
         };
@@ -210,8 +204,6 @@ export function Home() {
 
           //console.log(data);
 
-          // console.log("BFS path is long = " + data.path.length);
-
           if (data.length < 1) {
             console.log("path not found for BFS");
             return;
@@ -219,8 +211,6 @@ export function Home() {
 
           setBFSPath(data.path);
           setBFSSpeed(Math.random);
-
-          // set text to bold
 
           console.log("Successful BFS path");
         };
@@ -232,8 +222,6 @@ export function Home() {
           let data = await res.json();
 
           //console.log(data);
-
-          // console.log("Dijsktras path is long = " + data.path.length);
 
           if (data.length < 1) {
             console.log("path not found for Dijkstras");
@@ -247,8 +235,8 @@ export function Home() {
         };
 
         getAstarPath();
-        getBFSPath();
-        getDijkstrasPath();
+        // getBFSPath();
+        // getDijkstrasPath();
       } catch (err) {
         setErrorMessage("error gathering game data");
         console.log("Error fetching data : " + err);

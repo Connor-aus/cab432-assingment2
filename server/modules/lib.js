@@ -1,3 +1,21 @@
+// get coordinates from result
+function getCoords(route) {
+  var coords = [];
+
+  route.forEach((c) => coords.push([c.x, c.y]));
+
+  return coords;
+};
+
+// generate request response
+function generateResponse (id, route, cost) {
+  return {
+    id: id,
+    path: route,
+    speed: cost,
+  };
+};
+
 // random number generator
 function RandomNumGen(seed) {
   var x = Math.sin(seed++) * 100000000;
@@ -192,4 +210,4 @@ function generateMaze(grid, seed) {
   return grid;
 }
 
-module.exports = { makeGrid, generateMaze, updateNeighbours };
+module.exports = { makeGrid, generateMaze, updateNeighbours, getCoords, generateResponse };

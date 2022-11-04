@@ -5,42 +5,45 @@ const dynamoDB = require("../modules/dynamoDB");
 const elasticache = require("../modules/elasticache");
 
 router.get("/:cols/:rows/:seed", async (req, res) => {
-  try {
+  try {   
     // database key
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
-
-    // setup redis
-    var redisClient = elasticache.redisSetup();
-
-    // check cache
-    var getResult = await redisClient.get(responseId);
     
-    console.log("redis = ", getResult);
-
-    if (getResult != null) {
-
-      res.json(getResult);
-      console.log("Astar response sent from cache");
-
-      return;
+    // TODO move Redis get to front end
+    // check cache
+    try {
+      var redisClient = elasticache.redisSetup();
+      
+      var getResult = await redisClient.get(responseId);
+      
+      if (getResult != null) {
+        res.json(getResult);
+        console.log("Astar response sent from cache", getResult);
+        
+        return;
+      }
+    } catch (err) {
+      console.log(err);
     }
-
-    return;
-
+    
+    console.log("received");
     // check dynamo database
-    getResult = await dynamoDB.dynamoGet(responseId);
+    try {
+      getResult = await dynamoDB.dynamoGet(responseId);
+  
+      if (getResult.Item != null) {
+        // update cache
+        redisClient.setEx(responseId, 3600, JSON.stringify({ getResult }));
+  
+        res.json(getResult);
 
-    if (getResult.Item != null) {
-      // update cache
-      redisClient.setEx(responseId, 3600, JSON.stringify({ getResult }));
-
-      res.json(getResult);
-      console.log("Astar response sent from DB");
-
-      return;
+        console.log("Astar response sent from DB");
+  
+        return;
+      }
+    } catch (err) {
+      console.log(err);
     }
-
-    var now = new Date().getTime();
 
     var blankGrid = lib.makeGrid(req.params.cols, req.params.rows);
     var maze = lib.generateMaze(blankGrid, req.params.seed);
@@ -52,76 +55,25 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
       return;
     }
 
-    var routeCoords = getCoords(results[0]);
+    var routeCoords = lib.getCoords(results[0]);
     var cost = results[1];
+    var response = lib.generateResponse(responseId, routeCoords, cost);
 
-    // responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-Astar`;
-    var response = generateResponse(responseId, routeCoords, cost);
+    // save to cache and db
+    try{
+      await dynamoDB.dynamoPut(responseId,routeCoords,cost);
+      redisClient.setEx(responseId, 3600, JSON.stringify({ response }));
 
-    // set new value in put request params
-    putParams.Item["id"] = responseId;
-    putParams.Item["path"] = routeCoords;
-    putParams.Item["speed"] = cost;
-
-    // save to database
-    await putRequest();
-
-    // save path to cache
-
-    var later = new Date().getTime();
-    var totalTime = later - now;
-    console.log("total A time = " + totalTime);
-    console.log("length = " + results[0].length);
+    } catch (err) {
+      console.log(err)
+    }
 
     res.json(response);
-
-    console.log("Astar response sent");
+    console.log("Astar response sent", response);
   } catch (err) {
-    console.log("Error calculating route Astar: ");
-    console.log(err);
+    console.log("Error calculating route Astar: ", err);
   }
 });
-
-// DB put request params
-var putParams = {
-  TableName: "mascon1",
-  Item: {
-    "qut-username": "n8844488@qut.edu.au",
-    id: ``,
-    path: [],
-    speed: 0,
-  },
-};
-
-// DB put request
-var putRequest = async () => {
-  await docClient
-    .put(putParams, function (err, data) {
-      if (err) {
-        console.log("Error", err);
-      } else {
-        console.log("Success", data);
-      }
-    })
-    .promise();
-};
-
-// get coordinates from result
-getCoords = (route) => {
-  var coords = [];
-
-  route.forEach((c) => coords.push([c.x, c.y]));
-
-  return coords;
-};
-
-generateResponse = (id, route, cost) => {
-  return {
-    id: id,
-    path: route,
-    speed: cost,
-  };
-};
 
 //heuristic we will be using - Manhattan distance
 function heuristic(position0, position1) {
@@ -162,11 +114,11 @@ var calculateRoute = (maze) => {
       }
 
       // return the traced path
+      // and number of calculations
       var result = [];
       result.push(path.reverse());
       result.push(calcs);
 
-      // console.log(result[0]);
       return result;
     }
 
@@ -178,8 +130,6 @@ var calculateRoute = (maze) => {
 
     lib.updateNeighbours(current, maze);
     var neighbours = current.neighbours;
-
-    // console.log(neighbours);
 
     for (let i = 0; i < neighbours.length; i++) {
       let neighbour = neighbours[i];
