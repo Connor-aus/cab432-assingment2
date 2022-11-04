@@ -98,7 +98,7 @@ var putParams = {
 // DB put request
 var putRequest = async () => {
   await docClient
-    .put(putParams, await function (err, data) {
+    .put(putParams, function (err, data) {
       if (err) {
         console.log("Error", err);
       } else {
@@ -123,7 +123,6 @@ var getRequest = async () =>
       if (err) {
         console.log("Error", err);
       } else {
-        console.log("calllllllllllllllllllllllllllled")
         console.log("Success", data.Item);
         return data.Item;
       }
