@@ -1,8 +1,5 @@
 const express = require("express");
-const axios = require("axios");
-
 const router = express.Router();
-
 const lib = require("../modules/lib");
 
 // Load the AWS SDK for Node.js
@@ -17,13 +14,8 @@ AWS.config.update({
   aws_session_token: process.env.AWS_SESSION_TOKEN,
 });
 
-// console.log(AWS.config.AWS_ACCESS_KEY_ID);
-// console.log(AWS.config.AWS_SECRET_ACCESS_KEY);
-// console.log(AWS.config.AWS_SESSION_TOKEN);
-
 // Create DynamoDB document client
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
-var test;
 
 router.get("/:cols/:rows/:seed", async (req, res) => {
   try {

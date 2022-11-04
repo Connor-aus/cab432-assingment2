@@ -1,14 +1,13 @@
 const express = require("express");
-const axios = require("axios");
-
 const router = express.Router();
-
 const lib = require("../modules/lib");
+const elasticache = require("../modules/elasticache");
 
 require("dotenv").config();
-const app = express();
+
+// const app = express();
 const AWS = require("aws-sdk");
-const redis = require("redis");
+// const redis = require("redis");
 
 // Set the region
 AWS.config.update({
@@ -18,28 +17,23 @@ AWS.config.update({
   aws_session_token: process.env.AWS_SESSION_TOKEN,
 });
 
-////////////////////////////////////////////////////////////////////////////////////
-const { ElastiCacheClient } = require("@aws-sdk/client-elasticache");
+// const { ElastiCacheClient } = require("@aws-sdk/client-elasticache");
 
-const client = new ElastiCacheClient({ region: "ap-southeast-2" });
+// const client = new ElastiCacheClient({ region: "ap-southeast-2" });
 
-const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
-var redisClient = redis.createClient(
-//   {
+// const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
+// var redisClient = redis.createClient({
 //   url: `redis://${elasti}`,
-// }
-);
+// });
 
-
-(async () => {
-  try {
-    await redisClient.connect();
-    console.log(`connected to Redis`);
-  } catch (err) {
-      console.log(`Error connecting to Redis ${err}`);
-    }
-  }
-)();
+// (async () => {
+//   try {
+//     await redisClient.connect();
+//     console.log(`connected to Redis`);
+//   } catch (err) {
+//     console.log(`Error connecting to Redis ${err}`);
+//   }
+// })();
 
 router.get("/:cols/:rows/:seed", async (req, res) => {
   try {
@@ -74,19 +68,21 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     console.log(response);
     console.log(typeof response);
 
-    const result = await redisClient.get("a");
+    // connect to redis
+    var redisClient = elasticache.redisSetup();
 
     // save path to cache
     redisClient.setEx(
       responseId,
       3600,
-      //JSON.stringify({ source: "From Redis Cache", ...s3JSON })
       JSON.stringify({ response })
-    );
+      );
+
+    const result = await redisClient.get(responseId);
 
     console.log("=====redistest========");
     console.log(result);
-    
+
     var later = new Date().getTime();
     var totalTime = later - now;
     console.log("total D time = " + totalTime);
