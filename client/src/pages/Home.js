@@ -227,6 +227,9 @@ export function Home() {
           console.log("sending request for Astar path");
 
           var res = await fetch(key);
+
+          console.log("resonse: ", res);
+
           var data = await res.json();
 
           if (data.length < 1) {
