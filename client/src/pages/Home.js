@@ -230,13 +230,13 @@ export function Home() {
           // DB key
           var key = `/Astar/${cols}/${rows}/${seed}`;
 
-          // check redis for data
-          var res = await redisGet(key);
-          console.log("Data: ", data);
+          // // check redis for data
+          // var res = await redisGet(key);
+          // console.log("Data: ", data);
 
-          // check redis for data
-          var data = await res.json();
-          console.log("Res: ", res);
+          // // check redis for data
+          // var data = await res.json();
+          // console.log("Res: ", res);
 
           if (res != null) {
             console.log("Astar retrieved from cache");
@@ -244,8 +244,8 @@ export function Home() {
 
           console.log("sending request for Astar path");
 
-          res = await fetch(key);
-          data = await res.json();
+          var res = await fetch(key);
+          var data = await res.json();
 
           if (data.length < 1) {
             console.log("path not found for Astar");
@@ -336,10 +336,10 @@ export function Home() {
       <Row>{error(errorMessage)}</Row>
       <Row>{Instructions()}</Row>
       <Row>
-        {PlayerSpeed({ speed: playerSpeed, colour: "red" })}
-        {PlayerSpeed({ speed: AstarSpeed, colour: "blue" })}
-        {PlayerSpeed({ speed: BFSSpeed, colour: "green" })}
-        {PlayerSpeed({ speed: dijkstrasSpeed, colour: "orange" })}
+        {PlayerSpeed({ name: "Player", speed: playerSpeed, colour: "red" })}
+        {PlayerSpeed({ name: "Astar", speed: AstarSpeed, colour: "blue" })}
+        {PlayerSpeed({ name: "BFS", speed: BFSSpeed, colour: "green" })}
+        {PlayerSpeed({ name: "Dijkstra", speed: dijkstrasSpeed, colour: "orange" })}
       </Row>
       <br></br>
       <Row>

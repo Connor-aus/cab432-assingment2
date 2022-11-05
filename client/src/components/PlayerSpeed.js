@@ -7,7 +7,7 @@ export default function PLayerSpeed(props) {
   return (
     <Col>
       <h4 style={{ color: `${props.colour}`, fontWeight: "bold" }}>
-        Dijkstra's = {speedCheck(props.speed)}
+        {props.name} = {speedCheck(props.speed)}
       </h4>
     </Col>
   );
