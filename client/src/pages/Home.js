@@ -40,8 +40,8 @@ export function Home() {
 
   // TODO create instructions popup
 
-  const cols = 100; //columns in the maze
-  const rows = 100; //rows in the maze
+  const cols = 10; //columns in the maze
+  const rows = 10; //rows in the maze
 
   // callback function setting the seed value
   const searchSeed = (seedInput) => {
@@ -100,6 +100,8 @@ export function Home() {
 
   // stop game
   function stopGame() {
+    setStart(false);
+
     clearInterval(intervalA);
     clearInterval(intervalB);
     clearInterval(intervalD);
@@ -112,6 +114,8 @@ export function Home() {
   // player moved
   // re-render and check win
   useEffect(() => {
+    if (start == false) return;
+
     setPlayerSpeed((x) => x + 1);
     // stop all intervals if player has won
     if (playerX == mazeEnd[0] && playerY == mazeEnd[1]) {
@@ -183,7 +187,6 @@ export function Home() {
       if (seed == 0) return;
 
       // ensure game doesn't start prematurely
-      setStart(false);
       stopGame();
 
       // reset player positions and speed
@@ -302,6 +305,7 @@ export function Home() {
         {PlayerSpeed({ speed: BFSSpeed, colour: "green" })}
         {PlayerSpeed({ speed: dijkstrasSpeed, colour: "orange" })}
       </Row>
+      <br></br>
       <Row>
         <Col>
           <div
