@@ -35,7 +35,7 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
   
       if (getResult.Item != null) {
         // update cache
-        // redisClient.setEx(responseId, 3600, JSON.stringify({ getResult }));
+        // await redisClient.setEx(responseId, 3600, JSON.stringify({ getResult }));
   
         res.json(getResult);
 
@@ -72,14 +72,13 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
     // save to cache and db
     try{
       await dynamoDB.dynamoPut(responseId,routeCoords,cost);
-      redisClient.setEx(responseId, 3600, JSON.stringify({ response }));
-
+      // await redisClient.setEx(responseId, 3600, JSON.stringify({ response }));
     } catch (err) {
       console.log(err)
     }
 
     res.json(response);
-    console.log("Astar response sent", response);
+    console.log(`${alg} response sent`, response);
   } catch (err) {
     console.log("Error calculating route Astar: ", err);
   }

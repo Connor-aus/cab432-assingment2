@@ -19,7 +19,7 @@ async function dynamoPut(id, coords, cost) {
     putParams.Item["speed"] = cost;
 
     try {
-        var result = await getRequest();
+        var result = await putRequest();
     } catch (err) {
 
     }
