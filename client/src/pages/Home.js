@@ -231,12 +231,12 @@ export function Home() {
           var key = `/Astar/${cols}/${rows}/${seed}`;
 
           // check redis for data
-          // var res = await redisGet(key);
-          // console.log("Data: ", data);
+          var res = await redisGet(key);
+          console.log("Data: ", data);
 
           // check redis for data
-          // var data = await res.json();
-          // console.log("Res: ", res);
+          var data = await res.json();
+          console.log("Res: ", res);
 
           if (res != null) {
             console.log("Astar retrieved from cache");
@@ -244,8 +244,8 @@ export function Home() {
 
           console.log("sending request for Astar path");
 
-          var res = await fetch(key);
-          var data = await res.json();
+          res = await fetch(key);
+          data = await res.json();
 
           if (data.length < 1) {
             console.log("path not found for Astar");
