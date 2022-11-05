@@ -40,8 +40,8 @@ export function Home() {
 
   // TODO create instructions popup
 
-  const cols = 10; //columns in the maze
-  const rows = 10; //rows in the maze
+  const cols = 40; //columns in the maze
+  const rows = 40; //rows in the maze
 
   // callback function setting the seed value
   const searchSeed = (seedInput) => {
