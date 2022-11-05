@@ -112,6 +112,26 @@ export function Home() {
     setIntervalD();
   }
 
+  // calculate visual position of players
+  function determinePlayer(xIndex, yIndex) {
+    if (xIndex == playerX && yIndex == playerY)
+      return `player-1`;
+    
+    if (xIndex == AstarX && yIndex == AstarY)
+      return `player-2`;
+      
+    if (xIndex == BFSX && yIndex == BFSY)
+      return `player-3`
+      
+    if (xIndex == dijkstrasX && yIndex == dijkstrasY)
+      return `player-4`;
+      
+    if (xIndex == mazeEnd[0] && yIndex == mazeEnd[1])
+      return `finish`;
+      
+    return `player-0`;
+  }
+
   // player moved
   // re-render and check win
   useEffect(() => {
@@ -211,12 +231,12 @@ export function Home() {
           var key = `/Astar/${cols}/${rows}/${seed}`;
 
           // check redis for data
-          var res = await redisGet(key);
-          console.log("Data: ", data);
+          // var res = await redisGet(key);
+          // console.log("Data: ", data);
 
           // check redis for data
-          var data = await res.json();
-          console.log("Res: ", res);
+          // var data = await res.json();
+          // console.log("Res: ", res);
 
           if (res != null) {
             console.log("Astar retrieved from cache");
@@ -224,8 +244,8 @@ export function Home() {
 
           console.log("sending request for Astar path");
 
-          res = await fetch(key);
-          data = await res.json();
+          var res = await fetch(key);
+          var data = await res.json();
 
           if (data.length < 1) {
             console.log("path not found for Astar");
@@ -333,49 +353,12 @@ export function Home() {
           >
             {maze.map((col, yIndex) =>
               col.map((cell, xIndex) => {
-                if (xIndex == playerX && yIndex == playerY) {
-                  return (
-                    <div
-                      key={[cell.y, cell.x]}
-                      className={`player-1 box-${maze[cell.y][cell.x].walls}`}
-                    ></div>
-                  );
-                } else if (xIndex == AstarX && yIndex == AstarY) {
-                  return (
-                    <div
-                      key={[cell.y, cell.x]}
-                      className={`player-2 box-${maze[cell.y][cell.x].walls}`}
-                    ></div>
-                  );
-                } else if (xIndex == BFSX && yIndex == BFSY) {
-                  return (
-                    <div
-                      key={[cell.y, cell.x]}
-                      className={`player-3 box-${maze[cell.y][cell.x].walls}`}
-                    ></div>
-                  );
-                } else if (xIndex == dijkstrasX && yIndex == dijkstrasY) {
-                  return (
-                    <div
-                      key={[cell.y, cell.x]}
-                      className={`player-4 box-${maze[cell.y][cell.x].walls}`}
-                    ></div>
-                  );
-                } else if (xIndex == mazeEnd[0] && yIndex == mazeEnd[1]) {
-                  return (
-                    <div
-                      key={[cell.y, cell.x]}
-                      className={`finish box-${maze[cell.y][cell.x].walls}`}
-                    ></div>
-                  );
-                } else {
-                  return (
-                    <div
-                      key={[cell.y, cell.x]}
-                      className={`player-0 box-${maze[cell.y][cell.x].walls}`}
-                    ></div>
-                  );
-                }
+                return (
+                      <div
+                        key={[cell.y, cell.x]}
+                        className={`${determinePlayer(xIndex, yIndex)} box-${maze[cell.y][cell.x].walls}`}
+                      ></div>
+                    );
               })
             )}
           </div>
@@ -397,3 +380,4 @@ const error = (message) => {
     </Row>
   );
 };
+
