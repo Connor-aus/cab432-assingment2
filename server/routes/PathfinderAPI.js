@@ -79,7 +79,7 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
     // save to db and cache
     try {
       await dynamoDB.dynamoPut(responseId, routeCoords, cost);
-      // await redisClient.setEx(responseId, 3600, JSON.stringify({ response }));
+      await redisClient.setEx(responseId, 3600, JSON.stringify({ response }));
     } catch (err) {
       console.log("Failed to update DB or cache: ", err);
     }
