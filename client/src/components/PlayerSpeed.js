@@ -1,7 +1,6 @@
 import ".././App.css";
-import React, { useState } from "react";
-import Button from "react-bootstrap/Button";
-import { Container, Col } from "react-bootstrap";
+import React from "react";
+import { Col } from "react-bootstrap";
 
 export default function PLayerSpeed(props) {
   return (
