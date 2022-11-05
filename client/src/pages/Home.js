@@ -51,13 +51,13 @@ export function Home() {
       return;
     }
 
-    if (seedInt < 99999 && seedInt > 0) {
+    if (seedInt < 100000 && seedInt > 0) {
       setSeed(seedInt);
       setErrorMessage("");
       return;
     }
 
-    setErrorMessage("seed must be between 0 - 100000");
+    setErrorMessage("seed must be between 1 - 100000");
   };
 
   // register key events for moving player
@@ -239,6 +239,13 @@ export function Home() {
             return;
           }
 
+          try {
+            var cache = data.response;
+            data = cache;
+          } catch {
+            // data not returned via caching
+          }
+
           setAstarPath(data.astarPath);
           setAstarSpeed(data.astarSpeed);
           setBFSPath(data.bfsPath);
@@ -249,45 +256,8 @@ export function Home() {
           console.log("Successful Astar path");
         };
 
-        // let getBFSPath = async () => {
-        //   console.log("sending request for BFS path");
-
-        //   let res = await fetch(`/BFS/${cols}/${rows}/${seed}`);
-        //   let data = await res.json();
-
-        //   if (data.length < 1) {
-        //     console.log("path not found for BFS");
-        //     return;
-        //   }
-
-        //   // setBFSPath(data.astar.path);
-        //   // setBFSSpeed(data.astar.speed);
-        //   // setDijkstrasPath(data.bfs.path);
-        //   // setDijkstrasSpeed(data.bfs.speed);
-
-        //   console.log("Successful BFS path");
-        // };
-
-        // let getDijkstrasPath = async () => {
-        //   console.log("sending request for Dijkstras path");
-
-        //   let res = await fetch(`/Dijkstras/${cols}/${rows}/${seed}`);
-        //   let data = await res.json();
-
-        //   if (data.length < 1) {
-        //     console.log("path not found for Dijkstras");
-        //     return;
-        //   }
-
-        //   setDijkstrasPath(data.path);
-        //   setDijkstrasSpeed(data.speed);
-
-        //   console.log("Successful Dijkstras path");
-        // };
-
         getAstarPath();
-        // getBFSPath();
-        // getDijkstrasPath();
+
       } catch (err) {
         setErrorMessage("error gathering game data");
         console.log("Error fetching data : " + err);
