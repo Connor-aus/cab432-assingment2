@@ -12,7 +12,6 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
     // database key
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-${req.params.alg}`;
 
-    // // TODO move Redis get to front end
     // // check cache
     // try {
     //   var redisClient = elasticache.redisSetup();
@@ -28,7 +27,7 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
     // } catch (err) {
     //   console.log(err);
     // }
-
+    
     try {
       // check dynamo database
       getResult = await dynamoDB.dynamoGet(responseId);

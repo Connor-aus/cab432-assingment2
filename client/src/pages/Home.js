@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import { createClient } from "redis";
 
-
-import redisSetup from "../modules/elasticache";
 import SearchBar from "../components/SearchBar";
 import Instructions from "../components/Instructions";
 import PlayerSpeed from "../components/PlayerSpeed";
@@ -227,37 +224,15 @@ export function Home() {
           // DB key
           var key = `/Astar/${cols}/${rows}/${seed}`;
 
-          // check redis for data
-          //var client = await redisSetup();
-
-          const client = createClient();
-
-          client.on("error", (err) => console.log("Redis Client Error", err));
-
-          await client.connect();
-
-          var res = await client.get(key);
-          console.log("Data: ", res);
-
-          // check redis for data
-          var data = await res.json();
-          console.log("Res: ", res);
-
-          if (res != null) {
-            console.log("Astar retrieved from cache");
-          }
-
           console.log("sending request for Astar path");
 
-          res = await fetch(key);
-          data = await res.json();
+          var res = await fetch(key);
+          var data = await res.json();
 
           if (data.length < 1) {
             console.log("path not found for Astar");
             return;
           }
-
-          console.log("Real data: ", data);
 
           setAstarPath(data.path);
           setAstarSpeed(data.speed);

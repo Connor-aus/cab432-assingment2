@@ -84,7 +84,7 @@ var putRequest = async () => {
       if (err) {
         console.log("Error in Dynamo put: ", err);
       } else {
-        console.log("Success in Dynamo put: ", data.Item);
+        console.log("Success in Dynamo put",);
       }
     })
     .promise();
@@ -112,7 +112,7 @@ var getRequest = async () =>
       if (err) {
         console.log("Error in Dynamo get: ", err);
       } else {
-        console.log("Success in Dynamo get: ", data.Item);
+        console.log("Success in Dynamo get: ", data);
         return data.Item;
       }
     })

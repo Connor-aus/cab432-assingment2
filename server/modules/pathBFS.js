@@ -42,7 +42,7 @@ function heuristic(position0, position1) {
         // and number of calculations
         var result = [];
         result.push(path.reverse());
-        result.push(calcs * 1.4);
+        result.push(Math.floor(calcs * 1.4));
   
         return result;
       }
