@@ -230,13 +230,13 @@ export function Home() {
           // DB key
           var key = `/Astar/${cols}/${rows}/${seed}`;
 
-          // check redis for data
-          var res = await redisGet(key);
-          console.log("Data: ", data);
+          // // check redis for data
+          // var res = await redisGet(key);
+          // console.log("Data: ", data);
 
-          // check redis for data
-          var data = await res.json();
-          console.log("Res: ", res);
+          // // check redis for data
+          // var data = await res.json();
+          // console.log("Res: ", res);
 
           if (res != null) {
             console.log("Astar retrieved from cache");
