@@ -1,4 +1,4 @@
-const redis = require("redis");
+import { createClient } from 'redis';
 
 // Load the AWS SDK for Node.js
 const AWS = require("aws-sdk");
@@ -11,12 +11,12 @@ AWS.config.update({
   aws_session_token: process.env.AWS_SESSION_TOKEN,
 });
 
-function redisSetup() {
-  const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
-  var redisClient = redis.createClient({
-    url: `redis://${elasti}`,
-  });
+const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
+var redisClient = createClient({
+  url: `redis://${elasti}`,
+});
 
+function redisSetup() {
   (async () => {
     try {
       await redisClient.connect();
@@ -25,8 +25,10 @@ function redisSetup() {
       console.log(`Error connecting to Redis ${err}`);
     }
   })();
-
-  return redisClient;
 }
 
-module.exports = { redisSetup };
+redisSetup();
+
+export default async function redisGet(key) {
+  return await redisClient.get(key);
+}

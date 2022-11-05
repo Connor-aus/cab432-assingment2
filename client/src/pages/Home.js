@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 
+import redisGet from "../modules/Elasticache";
 import SearchBar from "../components/SearchBar";
 import Instructions from "../components/Instructions";
 import PlayerSpeed from "../components/PlayerSpeed";
@@ -204,19 +205,34 @@ export function Home() {
       setDijkstrasSpeed(0);
 
       try {
-        // TODO check redis cache
-
         // pass to server
         let getAstarPath = async () => {
+          // DB key
+          var key = `/Astar/${cols}/${rows}/${seed}`;
+
+          // check redis for data
+          var res = await redisGet(key);
+          console.log("Data: ", data);
+
+          // check redis for data
+          var data = await res.json();
+          console.log("Res: ", res);
+
+          if (res != null) {
+            console.log("Astar retrieved from cache");
+          }
+
           console.log("sending request for Astar path");
 
-          let res = await fetch(`/Astar/${cols}/${rows}/${seed}`);
-          let data = await res.json();
+          res = await fetch(key);
+          data = await res.json();
 
           if (data.length < 1) {
             console.log("path not found for Astar");
             return;
           }
+
+          console.log("Real data: ", data);
 
           setAstarPath(data.path);
           setAstarSpeed(data.speed);
