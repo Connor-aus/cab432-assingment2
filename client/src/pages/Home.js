@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
+import { createClient } from "redis";
+
 
 import redisSetup from "../modules/elasticache";
 import SearchBar from "../components/SearchBar";
@@ -114,21 +116,16 @@ export function Home() {
 
   // calculate visual position of players
   function determinePlayer(xIndex, yIndex) {
-    if (xIndex == playerX && yIndex == playerY)
-      return `player-1`;
-    
-    if (xIndex == AstarX && yIndex == AstarY)
-      return `player-2`;
-      
-    if (xIndex == BFSX && yIndex == BFSY)
-      return `player-3`
-      
-    if (xIndex == dijkstrasX && yIndex == dijkstrasY)
-      return `player-4`;
-      
-    if (xIndex == mazeEnd[0] && yIndex == mazeEnd[1])
-      return `finish`;
-      
+    if (xIndex == playerX && yIndex == playerY) return `player-1`;
+
+    if (xIndex == AstarX && yIndex == AstarY) return `player-2`;
+
+    if (xIndex == BFSX && yIndex == BFSY) return `player-3`;
+
+    if (xIndex == dijkstrasX && yIndex == dijkstrasY) return `player-4`;
+
+    if (xIndex == mazeEnd[0] && yIndex == mazeEnd[1]) return `finish`;
+
     return `player-0`;
   }
 
@@ -231,10 +228,16 @@ export function Home() {
           var key = `/Astar/${cols}/${rows}/${seed}`;
 
           // check redis for data
-          var client = redisSetup();
+          //var client = await redisSetup();
+
+          const client = createClient();
+
+          client.on("error", (err) => console.log("Redis Client Error", err));
+
+          await client.connect();
 
           var res = await client.get(key);
-          console.log("Data: ", data);
+          console.log("Data: ", res);
 
           // check redis for data
           var data = await res.json();
@@ -341,7 +344,11 @@ export function Home() {
         {PlayerSpeed({ name: "Player", speed: playerSpeed, colour: "red" })}
         {PlayerSpeed({ name: "Astar", speed: AstarSpeed, colour: "blue" })}
         {PlayerSpeed({ name: "BFS", speed: BFSSpeed, colour: "green" })}
-        {PlayerSpeed({ name: "Dijkstra", speed: dijkstrasSpeed, colour: "orange" })}
+        {PlayerSpeed({
+          name: "Dijkstra",
+          speed: dijkstrasSpeed,
+          colour: "orange",
+        })}
       </Row>
       <br></br>
       <Row>
@@ -356,11 +363,13 @@ export function Home() {
             {maze.map((col, yIndex) =>
               col.map((cell, xIndex) => {
                 return (
-                      <div
-                        key={[cell.y, cell.x]}
-                        className={`${determinePlayer(xIndex, yIndex)} box-${maze[cell.y][cell.x].walls}`}
-                      ></div>
-                    );
+                  <div
+                    key={[cell.y, cell.x]}
+                    className={`${determinePlayer(xIndex, yIndex)} box-${
+                      maze[cell.y][cell.x].walls
+                    }`}
+                  ></div>
+                );
               })
             )}
           </div>
@@ -382,4 +391,3 @@ const error = (message) => {
     </Row>
   );
 };
-

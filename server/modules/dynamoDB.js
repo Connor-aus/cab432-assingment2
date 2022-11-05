@@ -14,8 +14,6 @@ AWS.config.update({
 var db = new AWS.DynamoDB();
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
-var tableName = "mascon1";
-
 // create table function
 async function dynamoCreate() {
   await createRequest();
@@ -23,7 +21,7 @@ async function dynamoCreate() {
 
 // create table params
 var createParams = {
-  TableName: tableName,
+  TableName: `mascon1`,
   KeySchema: [
     { AttributeName: "qut-username", KeyType: "HASH" }, //Partition key
     { AttributeName: "id", KeyType: "RANGE" }, //Sort key
@@ -70,7 +68,7 @@ async function dynamoPut(id, coords, cost) {
 
 // DB put request params
 var putParams = {
-  TableName: tableName,
+  TableName: `mascon1`,
   Item: {
     "qut-username": "n8844488@qut.edu.au",
     id: ``,
@@ -103,7 +101,7 @@ async function dynamoGet(id) {
 
 // DB get request params
 var getParams = {
-  TableName: tableName,
+  TableName: `mascon1`,
   Key: { "qut-username": "n8844488@qut.edu.au", id: "test" },
 };
 

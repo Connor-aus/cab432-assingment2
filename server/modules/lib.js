@@ -67,21 +67,8 @@ function makeGrid(width, height) {
 
 // update neighbors array for a given grid point
 function updateNeighbours(cell, maze) {
-  var updatedNaighbours = [];
   var x = cell.x;
   var y = cell.y;
-
-  // var cols = maze.length;
-  // var rows = maze[0].length;
-  // var cell = maze[x][y];
-
-  // if (x < cols - 1) cell.neighbours.push(maze[x + 1][y]);
-
-  // if (x > 0) cell.neighbours.push(maze[x - 1][y]);
-
-  // if (y < rows - 1) cell.neighbours.push(maze[x][y + 1]);
-
-  // if (y > 0) cell.neighbours.push(maze[x][y - 1]);
 
   if (cell.right == true) cell.neighbours.push(maze[x + 1][y]); // right
 
