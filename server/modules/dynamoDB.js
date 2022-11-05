@@ -56,14 +56,22 @@ var createRequest = async () => {
 };
 
 // DB put function
-async function dynamoPut(id, coords, cost) {
+async function dynamoPut(id, response) {
+  console.log("putting in db -------------------");
+  console.log(response);
+
   putParams.Item["id"] = id;
-  putParams.Item["path"] = coords;
-  putParams.Item["speed"] = cost;
+  putParams.Item["astarPath"] = response.astarPath;
+  putParams.Item["astarSpeed"] = response.astarSpeed;
+  putParams.Item["bfsPath"] = response.bfsPath;
+  putParams.Item["bfsSpeed"] = response.bfsSpeed;
+  putParams.Item["dijkstrasPath"] = response.dijkstrasPath;
+  putParams.Item["dijkstrasSpeed"] = response.dijkstrasSpeed;
 
-  var result = await putRequest();
+  console.log("test: ", putParams.Item["bfsSpeed"]);
 
-  return result;
+
+  await putRequest();
 }
 
 // DB put request params
@@ -72,8 +80,12 @@ var putParams = {
   Item: {
     "qut-username": "n8844488@qut.edu.au",
     id: ``,
-    path: [],
-    speed: 0,
+    astarPath: [],
+    astarSpeed: 0,
+    bfsPath: [],
+    bfsSpeed: 0,
+    dijkstrasPath: [],
+    dijkstrasSpeed: 0,
   },
 };
 
@@ -84,7 +96,7 @@ var putRequest = async () => {
       if (err) {
         console.log("Error in Dynamo put: ", err);
       } else {
-        console.log("Success in Dynamo put",);
+        console.log("Success in Dynamo put");
       }
     })
     .promise();

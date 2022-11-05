@@ -8,11 +8,19 @@ function getCoords(route) {
 };
 
 // generate request response
-function generateResponse (id, route, cost) {
+function generateResponse (astarCoords,
+  astarCost,
+  bfsCoords,
+  bfsCost,
+  dijkstraCoords,
+  dijkstraCost) {
   return {
-    id: id,
-    path: route,
-    speed: cost,
+      astarPath: astarCoords,
+      astarSpeed: astarCost,
+      bfsPath: bfsCoords,
+      bfsSpeed: bfsCost,
+      dijkstrasPath: dijkstraCoords,
+      dijkstrasSpeed: dijkstraCost,
   };
 };
 
@@ -58,9 +66,6 @@ function makeGrid(width, height) {
       grid[i][j] = new Cell(i, j);
     }
   }
-
-  // for (let i = 0; i < width; i++)
-  // for (let j = 0; j < height; j++) updateNeighbours(grid, i, j);
 
   return grid;
 }

@@ -191,9 +191,9 @@ export function Home() {
       (intervalSpeed * dijkstrasSpeed) / (cols * rows) - 100
     );
 
-    setIntervalA(intervalAstar);
-    setIntervalB(intervalBFS);
-    setIntervalD(intervalDijkstras);
+    if (AstarSpeed != 0) setIntervalA(intervalAstar);
+    if (BFSSpeed != 0) setIntervalB(intervalBFS);
+    if (dijkstrasSpeed != 0) setIntervalD(intervalDijkstras);
   }, [start]);
 
   // triggers API request for path data
@@ -222,7 +222,7 @@ export function Home() {
         // pass to server
         let getAstarPath = async () => {
           // DB key
-          var key = `/Astar/${cols}/${rows}/${seed}`;
+          var key = `/${cols}/${rows}/${seed}`;
 
           console.log("sending request for Astar path");
 
@@ -232,54 +232,62 @@ export function Home() {
 
           var data = await res.json();
 
+          console.log("data: ", data);
+
           if (data.length < 1) {
             console.log("path not found for Astar");
             return;
           }
 
-          setAstarPath(data.path);
-          setAstarSpeed(data.speed);
+          setAstarPath(data.astarPath);
+          setAstarSpeed(data.astarSpeed);
+          setBFSPath(data.bfsPath);
+          setBFSSpeed(data.bfsSpeed);
+          setDijkstrasPath(data.dijkstrasPath);
+          setDijkstrasSpeed(data.dijkstrasSpeed);
 
           console.log("Successful Astar path");
         };
 
-        let getBFSPath = async () => {
-          console.log("sending request for BFS path");
+        // let getBFSPath = async () => {
+        //   console.log("sending request for BFS path");
 
-          let res = await fetch(`/BFS/${cols}/${rows}/${seed}`);
-          let data = await res.json();
+        //   let res = await fetch(`/BFS/${cols}/${rows}/${seed}`);
+        //   let data = await res.json();
 
-          if (data.length < 1) {
-            console.log("path not found for BFS");
-            return;
-          }
+        //   if (data.length < 1) {
+        //     console.log("path not found for BFS");
+        //     return;
+        //   }
 
-          setBFSPath(data.path);
-          setBFSSpeed(data.speed);
+        //   // setBFSPath(data.astar.path);
+        //   // setBFSSpeed(data.astar.speed);
+        //   // setDijkstrasPath(data.bfs.path);
+        //   // setDijkstrasSpeed(data.bfs.speed);
 
-          console.log("Successful BFS path");
-        };
+        //   console.log("Successful BFS path");
+        // };
 
-        let getDijkstrasPath = async () => {
-          console.log("sending request for Dijkstras path");
+        // let getDijkstrasPath = async () => {
+        //   console.log("sending request for Dijkstras path");
 
-          let res = await fetch(`/Dijkstras/${cols}/${rows}/${seed}`);
-          let data = await res.json();
+        //   let res = await fetch(`/Dijkstras/${cols}/${rows}/${seed}`);
+        //   let data = await res.json();
 
-          if (data.length < 1) {
-            console.log("path not found for Dijkstras");
-            return;
-          }
+        //   if (data.length < 1) {
+        //     console.log("path not found for Dijkstras");
+        //     return;
+        //   }
 
-          setDijkstrasPath(data.path);
-          setDijkstrasSpeed(data.speed);
+        //   setDijkstrasPath(data.path);
+        //   setDijkstrasSpeed(data.speed);
 
-          console.log("Successful Dijkstras path");
-        };
+        //   console.log("Successful Dijkstras path");
+        // };
 
         getAstarPath();
-        getBFSPath();
-        getDijkstrasPath();
+        // getBFSPath();
+        // getDijkstrasPath();
       } catch (err) {
         setErrorMessage("error gathering game data");
         console.log("Error fetching data : " + err);

@@ -7,10 +7,10 @@ const astar = require("../modules/pathAstar");
 const bfs = require("../modules/pathBFS");
 const dijkstras = require("../modules/pathDijkstras");
 
-router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
+router.get("/:cols/:rows/:seed", async (req, res) => {
   try {
     // database key
-    var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-${req.params.alg}`;
+    var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}`;
 
     // check cache
     try {
@@ -19,7 +19,7 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
       var getResult = await redisClient.get(responseId);
 
       if (getResult != null) {
-        console.log("CACHE RESULT ___________________________")
+        console.log("CACHE RESULT ___________________________");
         console.log(getResult);
 
         res.json(getResult);
@@ -49,8 +49,8 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
       console.log("Failed to get from DB: ", err);
 
       // if resource not found, try create table in DB
-      if (err.code == "ResourceNotFoundException") console.log("second"); {
-
+      if (err.code == "ResourceNotFoundException") console.log("second");
+      {
         try {
           await dynamoDB.dynamoCreate();
         } catch (err) {
@@ -61,27 +61,45 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
 
     var blankGrid = lib.makeGrid(req.params.cols, req.params.rows);
     var maze = lib.generateMaze(blankGrid, req.params.seed);
-    var results = [];
 
-    // select algorithm
-    if (req.params.alg == "Astar") results = astar.calculateRoute(maze);
-    else if (req.params.alg == "BFS") results = bfs.calculateRoute(maze);
-    else if (req.params.alg == "Dijkstras")
-      results = dijkstras.calculateRoute(maze);
+    // // select algorithm
+    // if (req.params.alg == "Astar") results = astar.calculateRoute(maze);
+    // else if (req.params.alg == "BFS") results = bfs.calculateRoute(maze);
+    // else if (req.params.alg == "Dijkstras")
+    //   results = dijkstras.calculateRoute(maze);
 
-    // no route found
-    if (results.length < 1) {
-      res.json([]);
-      return;
-    }
+    // get algorithm paths and costs
+    var astarResults = astar.calculateRoute(maze);
+    var bfsResults = bfs.calculateRoute(maze);
+    var dijkstraResults = dijkstras.calculateRoute(maze);
 
-    var routeCoords = lib.getCoords(results[0]);
-    var cost = results[1];
-    var response = lib.generateResponse(responseId, routeCoords, cost);
+    // // no route found
+    // if (results.length < 1) {
+    //   res.json([]);
+    //   return;
+    // }
+
+    var astarCoords = lib.getCoords(astarResults[0]);
+    var astarCost = astarResults[1];
+    var bfsCoords = lib.getCoords(bfsResults[0]);
+    var bfsCost = bfsResults[1];
+    var dijkstraCoords = lib.getCoords(dijkstraResults[0]);
+    var dijkstraCost = dijkstraResults[1];
+
+    var response = lib.generateResponse(
+      astarCoords,
+      astarCost,
+      bfsCoords,
+      bfsCost,
+      dijkstraCoords,
+      dijkstraCost
+    );
+
+    console.log("getresult: ", getResult);
 
     // save to db and cache
     try {
-      await dynamoDB.dynamoPut(responseId, routeCoords, cost);
+      await dynamoDB.dynamoPut(responseId, response);
       await redisClient.setEx(responseId, 3600, JSON.stringify({ response }));
     } catch (err) {
       console.log("Failed to update DB or cache: ", err);
