@@ -11,12 +11,30 @@ AWS.config.update({
   aws_session_token: process.env.AWS_SESSION_TOKEN,
 });
 
-const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
-var redisClient = createClient({
-  url: `redis://${elasti}`,
-});
+// const elasti = "redis://cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
+// // var redisClient = createClient({
+// //   url: elasti,
+// // });
 
-function redisSetup() {
+// var redisClient = createClient();
+
+// function redisSetup() {
+//   (async () => {
+//     try {
+//       await redisClient.connect();
+//       console.log(`connected to Redis`);
+//     } catch (err) {
+//       console.log(`Error connecting to Redis ${err}`);
+//     }
+//   })();
+// }
+
+export function redisSetup() {
+  const elasti = "cab432mascon-001.km2jzi.0001.apse2.cache.amazonaws.com:6379";
+  var redisClient = createClient({
+    url: `redis://${elasti}`,
+  });
+
   (async () => {
     try {
       await redisClient.connect();
@@ -25,10 +43,12 @@ function redisSetup() {
       console.log(`Error connecting to Redis ${err}`);
     }
   })();
+
+  return redisClient;
 }
 
-redisSetup();
+//redisSetup();
 
 export default async function redisGet(key) {
-  return await redisClient.get(key);
+  // return await redisClient.get(key);
 }

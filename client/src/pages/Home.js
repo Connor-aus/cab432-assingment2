@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 
-import redisGet from "../modules/Elasticache";
+import redisSetup from "../modules/elasticache";
 import SearchBar from "../components/SearchBar";
 import Instructions from "../components/Instructions";
 import PlayerSpeed from "../components/PlayerSpeed";
@@ -231,7 +231,9 @@ export function Home() {
           var key = `/Astar/${cols}/${rows}/${seed}`;
 
           // check redis for data
-          var res = await redisGet(key);
+          var client = redisSetup();
+
+          var res = await client.get(key);
           console.log("Data: ", data);
 
           // check redis for data
