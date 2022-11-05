@@ -12,22 +12,22 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
     // database key
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-${req.params.alg}`;
 
-    // // check cache
-    // try {
-    //   var redisClient = elasticache.redisSetup();
+    // check cache
+    try {
+      var redisClient = elasticache.redisSetup();
 
-    //   var getResult = await redisClient.get(responseId);
+      var getResult = await redisClient.get(responseId);
 
-    //   if (getResult != null) {
-    //     res.json(getResult);
-    //     console.log("Astar response sent from cache", getResult);
+      if (getResult != null) {
+        res.json(getResult);
+        console.log("Astar response sent from cache", getResult);
 
-    //     return;
-    //   }
-    // } catch (err) {
-    //   console.log(err);
-    // }
-    
+        return;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+
     try {
       // check dynamo database
       getResult = await dynamoDB.dynamoGet(responseId);
