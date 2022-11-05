@@ -11,73 +11,113 @@ AWS.config.update({
 });
 
 // Create DynamoDB document client
+var db = new AWS.DynamoDB();
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
+var tableName = "mascon1";
+
+// create table function
+async function dynamoCreate() {
+  await createRequest();
+}
+
+// create table params
+var createParams = {
+  TableName: tableName,
+  KeySchema: [
+    { AttributeName: "qut-username", KeyType: "HASH" }, //Partition key
+    { AttributeName: "id", KeyType: "RANGE" }, //Sort key
+  ],
+  AttributeDefinitions: [
+    { AttributeName: "qut-username", AttributeType: "S" },
+    { AttributeName: "id", AttributeType: "S" },
+  ],
+  ProvisionedThroughput: {
+    ReadCapacityUnits: 10,
+    WriteCapacityUnits: 10,
+  },
+};
+
+// DB create table request
+var createRequest = async () => {
+  await db
+    .createTable(createParams, function (err, data) {
+      if (err) {
+        console.error(
+          "Unable to create table. Error JSON:",
+          JSON.stringify(err, null, 2)
+        );
+      } else {
+        console.log(
+          "Created table. Table description JSON:",
+          JSON.stringify(data, null, 2)
+        );
+      }
+    })
+    .promise();
+};
+
+// DB put function
 async function dynamoPut(id, coords, cost) {
-    putParams.Item["id"] = id;
-    putParams.Item["path"] = coords;
-    putParams.Item["speed"] = cost;
+  putParams.Item["id"] = id;
+  putParams.Item["path"] = coords;
+  putParams.Item["speed"] = cost;
 
-    try {
-        var result = await putRequest();
-    } catch (err) {
+  var result = await putRequest();
 
-    }
-    return result;
+  return result;
 }
 
 // DB put request params
 var putParams = {
-    TableName: "mascon1",
-    Item: {
-      "qut-username": "n8844488@qut.edu.au",
-      id: ``,
-      path: [],
-      speed: 0,
-    },
-  };
-  
-  // DB put request
-  var putRequest = async () => {
-    await docClient
-      .put(putParams, function (err, data) {
-        if (err) {
-          console.log("Error", err);
-        } else {
-          console.log("Success", data);
-        }
-      })
-      .promise();
-  };
+  TableName: tableName,
+  Item: {
+    "qut-username": "n8844488@qut.edu.au",
+    id: ``,
+    path: [],
+    speed: 0,
+  },
+};
 
+// DB put request
+var putRequest = async () => {
+  await docClient
+    .put(putParams, function (err, data) {
+      if (err) {
+        console.log("Error in Dynamo put: ", err);
+      } else {
+        console.log("Success in Dynamo put: ", data.Item);
+      }
+    })
+    .promise();
+};
 
+// Db get function
 async function dynamoGet(id) {
-    getParams.Key["id"] = id;
+  getParams.Key["id"] = id;
 
-    try {
-        var result = await getRequest();
-    } catch (err) {
+  var result = await getRequest();
 
-    }
-    return result;
+  return result;
 }
 
-    // get request params
-    var getParams = {
-        TableName: "mascon1",
-        Key: { "qut-username": "n8844488@qut.edu.au", "id": "test" },
-      };
-      
-      // get request
-      var getRequest = async () =>
-        await docClient
-          .get(getParams, function (err, data) {
-            if (err) {
-              console.log("Error", err);
-            } else {
-              console.log("Success", data.Item);
-              return data.Item;
-            }
-          }).promise();
+// DB get request params
+var getParams = {
+  TableName: tableName,
+  Key: { "qut-username": "n8844488@qut.edu.au", id: "test" },
+};
 
-module.exports = { dynamoPut, dynamoGet };
+// get request
+var getRequest = async () =>
+  await docClient
+    .get(getParams, function (err, data) {
+      if (err) {
+        console.log("Error in Dynamo get: ", err);
+      } else {
+        console.log("Success in Dynamo get: ", data.Item);
+        return data.Item;
+      }
+    })
+    .promise();
+
+module.exports = { dynamoCreate, dynamoPut, dynamoGet };

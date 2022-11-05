@@ -8,43 +8,53 @@ const bfs = require("../modules/pathBFS");
 const dijkstras = require("../modules/pathDijkstras");
 
 router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
-  try {   
+  try {
     // database key
     var responseId = `${req.params.cols}x${req.params.rows}-${req.params.seed}-${req.params.alg}`;
-    
+
     // // TODO move Redis get to front end
     // // check cache
     // try {
     //   var redisClient = elasticache.redisSetup();
-      
+
     //   var getResult = await redisClient.get(responseId);
-      
+
     //   if (getResult != null) {
     //     res.json(getResult);
     //     console.log("Astar response sent from cache", getResult);
-        
+
     //     return;
     //   }
     // } catch (err) {
     //   console.log(err);
     // }
-    
-    // check dynamo database
+
     try {
+      // check dynamo database
       getResult = await dynamoDB.dynamoGet(responseId);
-  
+
       if (getResult.Item != null) {
         // update cache
         // await redisClient.setEx(responseId, 3600, JSON.stringify({ getResult }));
-  
+
         res.json(getResult);
 
         console.log("Astar response sent from DB");
-  
+
         return;
       }
     } catch (err) {
-      console.log(err);
+      console.log("Failed to get from DB: ", err);
+
+      // if resource not found, try create table in DB
+      if (err.code == "ResourceNotFoundException") console.log("second"); {
+
+        try {
+          await dynamoDB.dynamoCreate();
+        } catch (err) {
+          console.log("Error creating table: ", err);
+        }
+      }
     }
 
     var blankGrid = lib.makeGrid(req.params.cols, req.params.rows);
@@ -52,11 +62,9 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
     var results = [];
 
     // select algorithm
-    if(req.params.alg == "Astar")
-      results = astar.calculateRoute(maze);
-    else if(req.params.alg == "BFS")
-      results = bfs.calculateRoute(maze);
-    else if(req.params.alg == "Dijkstras")
+    if (req.params.alg == "Astar") results = astar.calculateRoute(maze);
+    else if (req.params.alg == "BFS") results = bfs.calculateRoute(maze);
+    else if (req.params.alg == "Dijkstras")
       results = dijkstras.calculateRoute(maze);
 
     // no route found
@@ -69,20 +77,19 @@ router.get("/:alg/:cols/:rows/:seed", async (req, res) => {
     var cost = results[1];
     var response = lib.generateResponse(responseId, routeCoords, cost);
 
-    // save to cache and db
-    try{
-      await dynamoDB.dynamoPut(responseId,routeCoords,cost);
+    // save to db and cache
+    try {
+      await dynamoDB.dynamoPut(responseId, routeCoords, cost);
       // await redisClient.setEx(responseId, 3600, JSON.stringify({ response }));
     } catch (err) {
-      console.log(err)
+      console.log("Failed to update DB or cache: ", err);
     }
 
     res.json(response);
-    console.log(`${alg} response sent`, response);
+    console.log(`${req.params.alg} response sent: `, response);
   } catch (err) {
     console.log("Error calculating route Astar: ", err);
   }
 });
-
 
 module.exports = router;
