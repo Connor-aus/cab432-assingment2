@@ -58,12 +58,15 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
       }
     }
 
-    var blankGrid = lib.makeGrid(req.params.cols, req.params.rows);
-    var maze = lib.generateMaze(blankGrid, req.params.seed);
+    var blankGrid1 = lib.makeGrid(req.params.cols, req.params.rows);
+    var maze = lib.generateMaze(blankGrid1, req.params.seed);
+
+    var blankGrid2 = lib.makeGrid(req.params.cols, req.params.rows);
+    var bfsMaze = lib.generateMaze(blankGrid2, req.params.seed);
 
     // get algorithm paths and costs
     var astarResults = astar.calculateRoute(maze);
-    var bfsResults = bfs.calculateRoute(maze);
+    var bfsResults = bfs.calculateRoute(bfsMaze);
     var dijkstraResults = dijkstras.calculateRoute(maze);
 
 
@@ -94,9 +97,9 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     }
 
     res.json(response);
-    console.log(`${req.params.alg} response sent: `, response);
+    console.log(`Response sent: `, response);
   } catch (err) {
-    console.log("Error calculating route Astar: ", err);
+    console.log("Error calculating routes: ", err);
   }
 });
 

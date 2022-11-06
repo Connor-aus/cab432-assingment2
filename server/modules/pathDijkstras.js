@@ -8,7 +8,7 @@ function heuristic(position0, position1) {
     return d1 + d2;
   }
   
-  //A star search implementation
+  //Dijkstras search implementation
   var calculateRoute = (maze) => {
     var start = maze[0][0];
     var end = maze[maze.length - 1][maze[0].length - 1];

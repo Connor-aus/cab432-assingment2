@@ -57,9 +57,6 @@ var createRequest = async () => {
 
 // DB put function
 async function dynamoPut(id, response) {
-  console.log("putting in db -------------------");
-  console.log(response);
-
   putParams.Item["id"] = id;
   putParams.Item["astarPath"] = response.astarPath;
   putParams.Item["astarSpeed"] = response.astarSpeed;
@@ -67,9 +64,6 @@ async function dynamoPut(id, response) {
   putParams.Item["bfsSpeed"] = response.bfsSpeed;
   putParams.Item["dijkstrasPath"] = response.dijkstrasPath;
   putParams.Item["dijkstrasSpeed"] = response.dijkstrasSpeed;
-
-  console.log("test: ", putParams.Item["bfsSpeed"]);
-
 
   await putRequest();
 }

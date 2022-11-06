@@ -229,6 +229,8 @@ export function Home() {
           var res = await fetch(key);
           var data = await res.json();
 
+          console.log (res)
+          console.log (data)
           
           if (data.length < 1) {
             setErrorMessage("error gathering game data");
