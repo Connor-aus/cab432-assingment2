@@ -239,11 +239,14 @@ export function Home() {
 
           // if data is from cache
           if (data.response != null) {
+              console.log("caching");
               var cache = data.response;
+              var cache2 = data["response"];
               data = cache;
-          }
+              console.log("cache: ", cache);
+              console.log("cache2: ", cache2);
 
-          console.log("after cahce: ", data);
+          }
 
 
           setAstarPath(data.astarPath);
