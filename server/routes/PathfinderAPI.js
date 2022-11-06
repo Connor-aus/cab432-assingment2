@@ -19,8 +19,8 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
       var getResult = await redisClient.get(responseId);
 
       if (getResult != null) {
-        console.log("CACHE RESULT ___________________________");
-        console.log(getResult);
+
+        getResult = JSON.parse(getResult);
 
         res.json(getResult);
         console.log("Astar response sent from cache", getResult);

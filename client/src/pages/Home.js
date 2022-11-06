@@ -238,7 +238,7 @@ export function Home() {
           console.log(data);
           console.log(typeof(data));
 
-          var data = JSON.parse(data);
+          // var data = JSON.parse(data);
 
 
 
