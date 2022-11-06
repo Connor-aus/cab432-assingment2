@@ -33,11 +33,11 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
 
     try {
       // check dynamo database
-      getResult = await dynamoDB.dynamoGet(responseId);
+      var getResult = await dynamoDB.dynamoGet(responseId);
 
       if (getResult.Item != null) {
         // update cache
-        // await redisClient.setEx(responseId, 3600, JSON.stringify({ getResult }));
+        await redisClient.setEx(responseId, 3600, JSON.stringify({ getResult }));
 
         res.json(getResult);
 
@@ -62,22 +62,11 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
     var blankGrid = lib.makeGrid(req.params.cols, req.params.rows);
     var maze = lib.generateMaze(blankGrid, req.params.seed);
 
-    // // select algorithm
-    // if (req.params.alg == "Astar") results = astar.calculateRoute(maze);
-    // else if (req.params.alg == "BFS") results = bfs.calculateRoute(maze);
-    // else if (req.params.alg == "Dijkstras")
-    //   results = dijkstras.calculateRoute(maze);
-
     // get algorithm paths and costs
     var astarResults = astar.calculateRoute(maze);
     var bfsResults = bfs.calculateRoute(maze);
     var dijkstraResults = dijkstras.calculateRoute(maze);
 
-    // // no route found
-    // if (results.length < 1) {
-    //   res.json([]);
-    //   return;
-    // }
 
     var astarCoords = lib.getCoords(astarResults[0]);
     var astarCost = astarResults[1];

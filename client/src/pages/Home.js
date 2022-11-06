@@ -40,8 +40,8 @@ export function Home() {
 
   // TODO create instructions popup
 
-  const cols = 40; //columns in the maze
-  const rows = 40; //rows in the maze
+  const cols = 10; //columns in the maze
+  const rows = 10; //rows in the maze
 
   // callback function setting the seed value
   const searchSeed = (seedInput) => {
@@ -227,23 +227,18 @@ export function Home() {
           console.log("sending request for Astar path");
 
           var res = await fetch(key);
-
-          console.log("resonse: ", res);
-
           var data = await res.json();
 
-          console.log("data: ", data);
-
+          
           if (data.length < 1) {
-            console.log("path not found for Astar");
+            setErrorMessage("error gathering game data");
             return;
           }
 
-          try {
-            var cache = data.response;
-            data = cache;
-          } catch {
-            // data not returned via caching
+          // if data is from cache
+          if (data.response != null) {
+              var cache = data.response;
+              data = cache;
           }
 
           setAstarPath(data.astarPath);
@@ -257,7 +252,6 @@ export function Home() {
         };
 
         getAstarPath();
-
       } catch (err) {
         setErrorMessage("error gathering game data");
         console.log("Error fetching data : " + err);
@@ -279,8 +273,6 @@ export function Home() {
       setMaze(result);
 
       setMazeEnd([cols - 1, rows - 1]);
-
-      // setAstarX(blankGrid.length - 1);
     })();
   }, [seed]);
 
