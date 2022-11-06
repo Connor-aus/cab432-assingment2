@@ -235,11 +235,16 @@ export function Home() {
             return;
           }
 
+          console.log(data);
+
           // if data is from cache
           if (data.response != null) {
               var cache = data.response;
               data = cache;
           }
+
+          console.log("after cahce: ", data);
+
 
           setAstarPath(data.astarPath);
           setAstarSpeed(data.astarSpeed);
