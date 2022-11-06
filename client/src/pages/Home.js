@@ -235,27 +235,11 @@ export function Home() {
             return;
           }
 
-          console.log(data);
-          console.log(typeof(data));
-
-          // var data = JSON.parse(data);
-
-
-
-
           // if data is from cache
           if (data.response != null) {
-              console.log("caching");
               var cache = data.response;
-              var cache2 = data["response"];
               data = cache;
-              console.log(typeof(data));
-
-              console.log("cache: ", cache);
-              console.log("cache2: ", cache2);
-
           }
-
 
           setAstarPath(data.astarPath);
           setAstarSpeed(data.astarSpeed);

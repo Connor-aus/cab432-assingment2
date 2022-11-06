@@ -19,7 +19,6 @@ router.get("/:cols/:rows/:seed", async (req, res) => {
       var getResult = await redisClient.get(responseId);
 
       if (getResult != null) {
-
         getResult = JSON.parse(getResult);
 
         res.json(getResult);
