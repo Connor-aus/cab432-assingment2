@@ -13,7 +13,7 @@ export default function Instructions() {
       <p>
         To begin, enter a seed value above and select "Generate Maze". Remember
         this seed value if you want to play the same maze again. You can use the
-        "w, a, s, d" keys to move you player.
+        "W, A, S, D" keys to move you player.
       </p>
       <p>
         See if you can beat the mighty algorithms - maybe using less
