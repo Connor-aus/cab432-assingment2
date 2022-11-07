@@ -21,7 +21,7 @@ body {
 	align-items: center;
 	border: 2px solid rebeccapurple;
 	color: transparent;
-	background: white;
+	background: black;
 	height: 0;
 	padding-bottom: 100%;
   }
@@ -147,8 +147,10 @@ body {
 	border-color: rgba(221, 197, 13, 0.801);
   }
   
-  
-
+  .inst{background:#333759;padding:20px;margin:20px auto;max-width:900px;border:solid 2px #000;border-radius:10px;}
+  .inst p{font-family:'Courier New',sans-serif;font-size:16px;font-weight:700;color:#ddd;}
+input{font-size:20px;font-weight:bold;}
+  .mazebox>*{all:unset;}
 
 /*/====retro style maze
   body {

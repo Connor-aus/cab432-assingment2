@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Row } from "react-bootstrap";
 
 import SearchBar from "../components/SearchBar";
 import Instructions from "../components/Instructions";
@@ -228,7 +228,7 @@ export function Home() {
 
           var res = await fetch(key);
           var data = await res.json();
-          
+
           if (data.length < 1) {
             setErrorMessage("error gathering game data");
             return;
@@ -236,8 +236,8 @@ export function Home() {
 
           // if data is from cache
           if (data.response != null) {
-              var cache = data.response;
-              data = cache;
+            var cache = data.response;
+            data = cache;
           }
 
           setAstarPath(data.astarPath);
@@ -276,14 +276,12 @@ export function Home() {
   }, [seed]);
 
   return (
-    <Container fluid className="bordercon">
+    <Container>
       <Row style={{ color: "rgb(255, 188, 62)", marginTop: "30px" }}>
         <h1>Welcome to Maze Runner</h1>
       </Row>
-      <Row className="borderr">
-        <Col className="bordercol">
-          <SearchBar onSubmit={searchSeed} />
-        </Col>
+      <Row>
+        <SearchBar onSubmit={searchSeed} />
       </Row>
       <Row>{error(errorMessage)}</Row>
       <Row>{Instructions()}</Row>
@@ -298,29 +296,27 @@ export function Home() {
         })}
       </Row>
       <br></br>
-      <Row>
-        <Col>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${cols}, 10px)`,
-              gridTemplateRows: `repeat(${rows}, 10px)`,
-            }}
-          >
-            {maze.map((col, yIndex) =>
-              col.map((cell, xIndex) => {
-                return (
-                  <div
-                    key={[cell.y, cell.x]}
-                    className={`${determinePlayer(xIndex, yIndex)} box-${
-                      maze[cell.y][cell.x].walls
+      <Row className="mazebox">
+        <div
+          style={{
+            margin: "auto",
+            display: "grid",
+            gridTemplateColumns: `repeat(${cols}, 10px)`,
+            gridTemplateRows: `repeat(${rows}, 10px)`,
+          }}
+        >
+          {maze.map((col, yIndex) =>
+            col.map((cell, xIndex) => {
+              return (
+                <div
+                  key={[cell.y, cell.x]}
+                  className={`${determinePlayer(xIndex, yIndex)} box-${maze[cell.y][cell.x].walls
                     }`}
-                  ></div>
-                );
-              })
-            )}
-          </div>
-        </Col>
+                ></div>
+              );
+            })
+          )}
+        </div>
       </Row>
     </Container>
   );
