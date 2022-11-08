@@ -77,6 +77,7 @@ var calculateRoute = (maze) => {
       }
     }
   }
+  
   var result = [];
   result.push(stack);
   result.push(calcs);
